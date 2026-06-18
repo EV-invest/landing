@@ -26,15 +26,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
     >
       <body>
-        <ErrorMonitoringProvider />
-        <Providers>
-          <PostHogProvider>
-            <Header />
-            {children}
-            <Footer />
-          </PostHogProvider>
-          <DevAbPanel />
-        </Providers>
+        <ErrorMonitoringProvider>
+          <Providers>
+            <PostHogProvider>
+              <Header />
+              {children}
+              <Footer />
+            </PostHogProvider>
+            <DevAbPanel />
+          </Providers>
+        </ErrorMonitoringProvider>
         {analyticsEndpoint && analyticsWebsiteId && (
           <Script
             defer
