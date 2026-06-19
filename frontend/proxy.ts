@@ -14,5 +14,11 @@ export const proxy = createAbMiddleware(experiments);
 // `apps` is excluded alongside `api`: page microfrontends (`/apps/*`) are remote
 // app surfaces with no landing experiments, so there is nothing to bucket there.
 export const config = {
-  matcher: ["/((?!api|apps|_next/static|_next/image|favicon.ico).*)"],
+  // Exclude the SEO/metadata file-convention routes (robots, sitemap, manifest,
+  // icons, OG/Twitter images, .well-known, llms.txt): the A/B middleware would
+  // otherwise dynamize them and write ab_* cookies onto static assets — Next's
+  // docs explicitly warn metadata routes break when caught by the matcher.
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|twitter-image|manifest.webmanifest|robots.txt|sitemap.xml|llms.txt|\\.well-known).*)",
+  ],
 };
