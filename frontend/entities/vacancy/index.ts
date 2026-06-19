@@ -18,3 +18,15 @@ export const VACANCY_CATEGORIES = [
 ] as const;
 
 export type VacancyCategoryKey = (typeof VACANCY_CATEGORIES)[number]["key"];
+
+/// Richer team labels for the board's category pill (vs. the short filter-chip label).
+const TEAM_LABELS: Record<string, string> = {
+  investment: "Investment & Research",
+  development: "Development & Projects",
+  advisory: "Client Advisory",
+  operations: "Operations",
+};
+
+export function vacancyTeamLabel(category: string, fallback: string): string {
+  return TEAM_LABELS[category] ?? fallback;
+}
