@@ -5,8 +5,11 @@
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
+    # Brand assets. Not a flake — a pinned source tree we copy the logo out of.
+    # "Latest logo" = `nix flake update ev_assets` (bumps flake.lock).
+    ev_assets = { url = "github:EV-invest/assets"; flake = false; };
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -23,12 +26,18 @@
         pre-commit-check = pre-commit-hooks.lib.${system}.run (v_flakes.files.preCommit { inherit pkgs; });
         pname = "landing";
 
+        # Brand logo from the pinned `ev_assets` input, copied into the served
+        # public dir (gitignored; declaratively populated, never hand-edited).
+        logoSrc = "${ev_assets}/logo/logo.svg";
+
         rs = v_flakes.rs { inherit pkgs rust; };
         github = v_flakes.github {
           inherit pkgs pname rs;
           enable = true;
           lastSupportedVersion = "nightly-2026-05-12";
           gitignore.extra = ''
+            ## Generated (populated from the ev_assets flake input)
+            frontend/public/assets/logo.svg
             ## Node / Next.js
             node_modules/
             .next/
@@ -85,6 +94,7 @@
           text = ''
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo/frontend"
+            cp -f ${logoSrc} ./public/assets/logo.svg
             [ -d node_modules/next ] || npm install
             exec npm run dev
           '';
@@ -220,6 +230,7 @@
               + combined.shellHook
               + ''
                 cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
+                cp -f ${logoSrc} ./frontend/public/assets/logo.svg
 
                 ${dyldFallback}
                 ${protocEnv}

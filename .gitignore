@@ -71,6 +71,8 @@ venv/
 ### could be used for initial debugging of apps using `config` crate
 /config.toml
 **/rustc-ice*
+## Generated (populated from the ev_assets flake input)
+frontend/public/assets/logo.svg
 ## Node / Next.js
 node_modules/
 .next/
