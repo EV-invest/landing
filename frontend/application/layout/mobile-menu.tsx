@@ -6,13 +6,12 @@ import { Menu, X } from "lucide-react";
 import { NAV_ITEMS } from "./nav-items";
 import { InvestorPortalButton } from "./investor-portal-button";
 
-/** Below-`lg` navigation: a full-screen overlay so the 7-item nav stays
- *  reachable on tablet/phone (the desktop nav is `hidden lg:flex`). */
+/** Below-`lg` navigation: a full-screen opaque overlay (above the header) with
+ *  its own close button, so the 7-item nav stays reachable on tablet/phone. */
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
 
-  // Lock body scroll while the overlay is up, and close it on Escape (the
-  // toggle stays focusable above the overlay for pointer/tab dismissal).
+  // Lock body scroll while open and close on Escape.
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
@@ -30,16 +29,27 @@ export function MobileMenu() {
     <div className="lg:hidden">
       <button
         type="button"
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label="Open menu"
         aria-expanded={open}
-        onClick={() => setOpen(v => !v)}
+        aria-haspopup="menu"
+        onClick={() => setOpen(true)}
         className="flex size-10 items-center justify-center text-white"
       >
-        {open ? <X className="size-6" /> : <Menu className="size-6" />}
+        <Menu className="size-6" />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[55] flex flex-col bg-main-black/98 px-6 pb-10 pt-28 backdrop-blur-md">
+        <div className="fixed inset-0 z-[70] flex flex-col bg-main-black px-6 pb-10">
+          <div className="flex h-20 shrink-0 items-center justify-end">
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              className="flex size-10 items-center justify-center text-white"
+            >
+              <X className="size-6" />
+            </button>
+          </div>
           <nav className="flex flex-col font-mono-tech text-sm uppercase tracking-widest">
             {NAV_ITEMS.map(item => (
               <Link
