@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "ev_assets": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1780774694,
+        "narHash": "sha256-cX7v5j65ofk5RVkInm7hWjIZTcfgRI2UBorSF2cELWI=",
+        "owner": "EV-invest",
+        "repo": "assets",
+        "rev": "c87fee926a625074f26e607669fcc6ed01656bdf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "EV-invest",
+        "repo": "assets",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -175,6 +191,7 @@
     },
     "root": {
       "inputs": {
+        "ev_assets": "ev_assets",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "pre-commit-hooks": "pre-commit-hooks",
