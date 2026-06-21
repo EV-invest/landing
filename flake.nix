@@ -112,7 +112,7 @@
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo"
             export DATABASE_URL="''${DATABASE_URL:-postgres://postgres@localhost:5432/ev_landing}"
-            export BIND_ADDR="''${BIND_ADDR:-0.0.0.0:8080}"
+            export BIND_ADDR="''${BIND_ADDR:-0.0.0.0:58844}"
             export RUST_LOG="''${RUST_LOG:-info,backend=debug}"
             export APP_ENV="''${APP_ENV:-development}"
             exec cargo run -p backend
@@ -199,9 +199,9 @@
             echo "  waiting for postgres on 127.0.0.1:''${PGPORT:-5432}…"
             until pg_isready --host=127.0.0.1 --port="''${PGPORT:-5432}" --quiet; do sleep 0.3; done
 
-            echo "▶ backend  (:8080)"
+            echo "▶ backend  (:58844)"
             ${runBackend}/bin/run-backend & pids+=($!)
-            echo "▶ frontend (:3001)"
+            echo "▶ frontend (:58843)"
             ${runFrontend}/bin/run-frontend & pids+=($!)
 
             wait
@@ -210,8 +210,8 @@
       in
       {
         # `nix run .#dev`      → Postgres + backend + frontend
-        # `nix run .#frontend` → Next.js marketing site (:3001)
-        # `nix run .#backend`  → Axum API only (:8080, needs a DB: `.#db` or `.#dev`)
+        # `nix run .#frontend` → Next.js marketing site (:58843)
+        # `nix run .#backend`  → Axum API only (:58844, needs a DB: `.#db` or `.#dev`)
         # `nix run .#db`       → local Postgres only (:5432)
         # `nix run .#gen-api`  → regenerate openapi.json + the TS client
         apps = {

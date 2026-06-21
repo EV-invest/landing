@@ -2,7 +2,7 @@
 
 Public marketing site for the EV Investment fund — Next.js 16 (App Router) +
 React 19, laid out with Feature-Sliced Design, styled with Tailwind v4. Serves on
-`:3000`.
+`:58843`.
 
 ## Layout
 
@@ -25,7 +25,7 @@ slice's `index.ts`, never deep paths. Conventions live in [`PATTERNS.md`](./PATT
 ## Run only landing
 
 ```sh
-nix run .#landing            # → http://localhost:3000
+nix run .#landing            # → http://localhost:58843
 ```
 Or inside the dev shell (`.envrc` + direnv):
 ```sh
