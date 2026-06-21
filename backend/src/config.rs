@@ -37,9 +37,9 @@ impl AppConfig {
 	pub fn from_env() -> anyhow::Result<Self> {
 		let database_url = env::var("DATABASE_URL").context("DATABASE_URL must be set")?;
 		let bind_addr = env::var("BIND_ADDR")
-			.unwrap_or_else(|_| "0.0.0.0:8080".to_string())
+			.unwrap_or_else(|_| "0.0.0.0:58844".to_string())
 			.parse()
-			.context("BIND_ADDR must be a valid socket address, e.g. 0.0.0.0:8080")?;
+			.context("BIND_ADDR must be a valid socket address, e.g. 0.0.0.0:58844")?;
 		let sentry_dsn = env::var("SENTRY_DSN").ok();
 		let app_env = env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
 

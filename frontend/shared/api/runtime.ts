@@ -8,8 +8,8 @@ import type { CreateClientConfig } from "./generated/client.gen";
 // (API_URL_INTERNAL, not NEXT_PUBLIC_) while the browser must use the public
 // origin (NEXT_PUBLIC_API_URL). The backend's OpenAPI paths already include
 // `/api/v1`, so the base URL is just the origin.
-const SERVER_BASE_URL = process.env.API_URL_INTERNAL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-const BROWSER_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const SERVER_BASE_URL = process.env.API_URL_INTERNAL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:58844";
+const BROWSER_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:58844";
 
 export const createClientConfig: CreateClientConfig = config => ({
   ...config,
