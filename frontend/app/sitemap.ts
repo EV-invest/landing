@@ -19,7 +19,7 @@ const HOME_IMAGES = [
   ASSETS.quynhon_future,
   ASSETS.luxury_villa,
   ASSETS.abstract_investment,
-  "/assets/EV_Investment_office.png",
+  "/assets/EV_Investment_office.jpg",
 ].map(abs);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

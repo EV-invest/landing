@@ -7,7 +7,7 @@ import { Heading, Text } from "@/shared/ui/text";
 import { Reveal } from "@/shared/ui/reveal";
 import { notifyPlaceholder } from "@/shared/lib/utils";
 import { ASSETS } from "@/shared/config/assets";
-import { InvestmentCalculator } from "@/features/investment-calculator";
+import { InvestmentCalculator } from "./investment-calculator";
 
 export function PortfolioA() {
   const [activeTab, setActiveTab] = useState("all");
