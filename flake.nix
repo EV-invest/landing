@@ -8,8 +8,11 @@
     # Brand assets. Not a flake — a pinned source tree we copy the logo out of.
     # "Latest logo" = `nix flake update ev_assets` (bumps flake.lock).
     ev_assets = { url = "github:EV-invest/assets"; flake = false; };
+    # Whitepaper. A flake: `nix build` → result/whitepaper.pdf. We copy its
+    # built PDF into the served dir. "Latest" = `nix flake update whitepaper`.
+    whitepaper.url = "github:EV-invest/whitepaper";
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets, whitepaper }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -29,6 +32,7 @@
         # Brand logo from the pinned `ev_assets` input, copied into the served
         # public dir (gitignored; declaratively populated, never hand-edited).
         logoSrc = "${ev_assets}/logo/logo.svg";
+        whitepaperPdf = "${whitepaper.packages.${system}.default}/whitepaper.pdf";
 
         rs = v_flakes.rs { inherit pkgs rust; };
         github = v_flakes.github {
@@ -38,6 +42,8 @@
           gitignore.extra = ''
             ## Generated (populated from the ev_assets flake input)
             frontend/public/assets/logo.svg
+            ## Generated (populated from the whitepaper flake input)
+            frontend/public/whitepaper.pdf
             ## Node / Next.js
             node_modules/
             .next/
@@ -95,6 +101,7 @@
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo/frontend"
             cp -f ${logoSrc} ./public/assets/logo.svg
+            cp -f ${whitepaperPdf} ./public/whitepaper.pdf
             [ -d node_modules/next ] || npm install
             exec npm run dev
           '';
@@ -231,6 +238,7 @@
               + ''
                 cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
                 cp -f ${logoSrc} ./frontend/public/assets/logo.svg
+                cp -f ${whitepaperPdf} ./frontend/public/whitepaper.pdf
 
                 ${dyldFallback}
                 ${protocEnv}
