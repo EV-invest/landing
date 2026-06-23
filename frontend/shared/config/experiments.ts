@@ -13,8 +13,10 @@ import type {
 // `as const satisfies ExperimentConfig` keeps the variant strings as literal
 // unions (so `match` / `getVariant` stay exhaustive) while checking the shape.
 export const experiments = {
+  //HACK: defining weights by hand is bad
   hero: { variants: ["a", "b"], weights: [0.5, 0.5] },
-  team: { variants: ["a", "b"], weights: [0.5, 0.5] },
+  hero_contents: { variants: ["a", "b"], weights: [0.5, 0.5] },
+  team_office: { variants: ["a", "b"], weights: [0.5, 0.5] },
 } as const satisfies ExperimentConfig;
 
 export type ExperimentKey = Key<typeof experiments>;
