@@ -5,11 +5,6 @@ import { HeroAStats } from "./stats";
 
 /**
  * Variant A — scroll-zoom metaphor. Server Component.
- *
- * Static copy (heading + body) is rendered here on the server and passed as
- * `children` to the {@link HeroACanvas} client island, which applies zoom
- * transforms without pulling the text into the client bundle. The CTA button
- * and the stats ribbon are also separate islands/components.
  */
 export function HeroA() {
   return (
@@ -17,21 +12,40 @@ export function HeroA() {
       id="hero"
       className="relative h-screen flex flex-col justify-center items-center overflow-hidden z-10"
     >
-      <HeroACanvas cta={<HeroACta />}>
-        <h1 className="text-4xl sm:text-6xl md:text-8xl font-serif-display font-light text-white leading-tight mb-6">
-          Invest in{" "}
-          <span className="italic text-main-accent-t1 font-serif">Quy Nhon</span>
-          <br />
-          Through Institutional Vision.
-        </h1>
-        <Text className="sm:text-base md:text-lg max-w-2xl mx-auto mb-12">
-          EV Investment bridges the gap between premium coastal real estate
-          development and sophisticated investors. Experience high-yield real
-          estate assets in Vietnam&apos;s fastest-growing coastal hub.
-        </Text>
-      </HeroACanvas>
+      <HeroCopy />
 
       <HeroAStats />
     </section>
+  );
+}
+
+function HeroACtaAB() {
+  return (
+    <HeroACta
+      scrollHint={
+        <span className="text-[9px] font-mono-tech tracking-[0.3em] uppercase">
+          Follow the money
+        </span>
+      }
+    />
+  );
+}
+
+function HeroCopy() {
+  return (
+    <HeroACanvas cta={<HeroACtaAB />}>
+      <h1 className="text-4xl sm:text-6xl md:text-8xl font-serif-display font-light text-white leading-tight mb-6">
+        Invest in{" "}
+        <span className="italic text-main-accent-t1 font-serif">Vietnam</span>
+        <br />
+        Through Institutional Vision.
+      </h1>
+      <Text className="sm:text-base md:text-lg max-w-2xl mx-auto mb-12">
+        Invest in Emergent Markets through Vietnam.<br />
+        See why and how to invest directly.
+        China+1 narrative ensures consistently increasing FDI inflows.<br />
+        <strong>Edge</strong>: our visarun branch lets us keep a pulse on regional trends in foreign purchases.
+      </Text>
+    </HeroACanvas>
   );
 }

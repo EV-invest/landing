@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import { Button } from "@evinvest/uikit";
 import { useExperimentEvent } from "@/features/ab-variant";
 
@@ -11,16 +11,28 @@ import { useExperimentEvent } from "@/features/ab-variant";
 export function HeroBCta({ className }: { className?: string }) {
   const track = useExperimentEvent();
   return (
-    <Button
-      className={className}
-      onClick={() =>
-        track("cta_clicked", { cta: "explore_assets" }, (fire) => {
-          fire();
-          document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
-        })
-      }
-    >
-      Explore Assets <ArrowRight className="w-4 h-4 ml-2" />
-    </Button>
+    <div className="flex flex-col sm:flex-row items-center gap-4">
+      <Button
+        className={className}
+        onClick={() =>
+          track("cta_clicked", { cta: "explore_assets" }, (fire) => {
+            fire();
+            document.getElementById("portfolio")?.scrollIntoView({ behavior: "smooth" });
+          })
+        }
+      >
+        Explore Assets <ArrowRight className="w-4 h-4 ml-2" />
+      </Button>
+
+      <Button
+        asChild
+        className="bg-transparent text-main-mist border border-main-mist/40 hover:bg-main-mist hover:text-main-brand hover:scale-105 active:scale-95 transition-all duration-300 font-mono-tech text-xs tracking-widest uppercase px-8 py-6 rounded-none"
+        onClick={() => track("cta_clicked", { cta: "whitepaper" })}
+      >
+        <a href="/whitepaper.pdf" download>
+          Whitepaper <FileText className="w-4 h-4 ml-2" />
+        </a>
+      </Button>
+    </div>
   );
 }

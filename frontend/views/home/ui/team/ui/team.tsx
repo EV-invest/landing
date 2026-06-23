@@ -1,21 +1,43 @@
+import { Container } from "@evinvest/uikit";
+import { MobileCarousel } from "@/shared/ui/carousel";
 import { getVariant } from "@/features/ab-variant/get-variant";
-import { ExperimentTracker, match } from "@/features/ab-variant";
-import { TeamA } from "./a";
-import { TeamB } from "./b";
+import { ASSETS } from "@/shared/config/assets";
+import { TEAM, MemberCard, LeadershipIntro } from "@/entities/team";
+import { TeamPlaceholders } from "./shared/placeholders";
 
-/**
- * Server wrapper — owns the Team's A/B decision.
- *
- * `HomeView` renders `<Team />` and is unaware that it's tested. The chosen
- * variant is created server-side so only its chunk reaches the client.
- * {@link ExperimentTracker} fires the exposure event and provides variant
- * context to the {@link TeamPlaceholders} client island inside each variant.
- */
+// Homepage Team section. Server Component; the only client island is
+// {@link TeamPlaceholders} (CTA clicks) and {@link MobileCarousel} (swipe).
+// Resolves the team_office A/B variant server-side so the right photo lands in
+// the shared {@link LeadershipIntro}.
 export async function Team() {
-  const variant = await getVariant("team");
+  const cards = TEAM.map(member => (
+    <MemberCard key={member.name} member={member} />
+  ));
+
+  const officeVariant = await getVariant("team_office");
+  const officeSrc = officeVariant === "b" ? ASSETS.messy_office : undefined;
+
   return (
-    <ExperimentTracker experiment="team" variant={variant}>
-      {match(variant, { a: <TeamA />, b: <TeamB /> })}
-    </ExperimentTracker>
+    <section
+      id="team"
+      className="py-24 relative border-t border-main-mist/10 bg-main-black"
+    >
+      <Container className="space-y-16">
+        <LeadershipIntro officeSrc={officeSrc} />
+
+        {/* Desktop: members and opportunities share one 4-up grid. */}
+        <div className="hidden gap-8 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+          {cards}
+          <TeamPlaceholders />
+        </div>
+        {/* Mobile: swipe the portraits, opportunities stacked beneath. */}
+        <div className="space-y-8 sm:hidden">
+          <MobileCarousel>{cards}</MobileCarousel>
+          <div className="grid gap-8">
+            <TeamPlaceholders />
+          </div>
+        </div>
+      </Container>
+    </section>
   );
 }
