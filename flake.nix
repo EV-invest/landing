@@ -6,18 +6,19 @@
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
     # Brand assets. Not a flake — a pinned source tree we copy the logo out of.
-    # "Latest logo" = `nix flake update ev_assets` (bumps flake.lock).
+    # "Latest logo" = `nix flake update ev_assets` (bumps flake.lock). Public repo,
+    # so this stays token-free.
     ev_assets = { url = "github:EV-invest/assets"; flake = false; };
-    # Whitepaper. A flake: `nix build` → result/whitepaper.pdf. We copy its
-    # built PDF into the served dir. "Latest" = `nix flake update whitepaper`.
-    whitepaper.url = "github:EV-invest/whitepaper";
-    # Blog articles. A flake: `nix build` → result/<slug>/main.pdf. We copy
-    # built PDFs/HTMLs into the served dir. "Latest" = `nix flake update blog`.
-    blog.url = "git+ssh://git@github.com/EV-invest/blog";
+    # NB: the whitepaper + blog are NOT flake inputs. Both are private repos, and
+    # declaring them here forced every `nix run`/`nix develop`/`nix flake check`
+    # to authenticate to GitHub just to evaluate. Instead `populate-docs` builds
+    # the local sibling clones (../whitepaper, ../blog) at runtime — token-free
+    # (their own inputs are public) and best-effort (the frontend still boots if a
+    # clone is missing). Refresh = `git -C ../whitepaper pull` etc.
     # OCI image builder for the production backend (`nix build .#backend-image`).
     nix2container = { url = "github:nlewo/nix2container"; inputs.nixpkgs.follows = "nixpkgs"; };
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets, whitepaper, blog, nix2container }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets, nix2container }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -37,10 +38,6 @@
         # Brand logo from the pinned `ev_assets` input, copied into the served
         # public dir (gitignored; declaratively populated, never hand-edited).
         logoSrc = "${ev_assets}/logo/logo.svg";
-        whitepaperPdf = "${whitepaper.packages.${system}.default}/whitepaper.pdf";
-        whitepaperHtmlLight = "${whitepaper.packages.${system}.default}/whitepaper.light.html";
-        whitepaperHtmlDark = "${whitepaper.packages.${system}.default}/whitepaper.dark.html";
-        blogsDir = "${blog.packages.${system}.default}";
 
         rs = v_flakes.rs { inherit pkgs rust; };
         github = v_flakes.github {
@@ -151,6 +148,58 @@
         # tonic-build / prost-build shell out to protoc; point them at nixpkgs'.
         protocEnv = ''export PROTOC="${pkgs.protobuf}/bin/protoc"'';
 
+        # ── served docs (whitepaper + blog) ─────────────────────────────────
+        # Populate frontend/public/ with the logo (from the public ev_assets
+        # input) and the typst-built whitepaper/blog HTML+PDF. The docs come from
+        # the LOCAL sibling clones (../whitepaper, ../blog) built at runtime —
+        # token-free (those repos are private, but their flake inputs are public)
+        # and best-effort: a missing clone or a failed build only warns, so the
+        # frontend always boots and the doc pages degrade to a graceful
+        # "unavailable"/last-good state. Idempotent (nix caches the builds).
+        populateDocs = pkgs.writeShellApplication {
+          name = "populate-docs";
+          runtimeInputs = with pkgs; [ git nix coreutils ];
+          text = ''
+            repo="$(git rev-parse --show-toplevel)"
+            pub="$repo/frontend/public"
+            mkdir -p "$pub/assets" "$pub/blogs"
+            cp -f ${logoSrc} "$pub/assets/logo.svg" || true
+
+            wp=""
+            if [ -d "$repo/../whitepaper" ]; then
+              wp="$(nix build "$repo/../whitepaper" --no-link --print-out-paths 2>/dev/null || true)"
+              [ -n "$wp" ] || echo "warn: whitepaper build failed — /whitepaper will degrade" >&2
+            else
+              echo "warn: ../whitepaper not checked out — /whitepaper will degrade" >&2
+            fi
+            if [ -n "$wp" ]; then
+              [ -e "$wp/whitepaper.pdf" ]        && cp -f "$wp/whitepaper.pdf"        "$pub/whitepaper.pdf"
+              [ -e "$wp/whitepaper.light.html" ] && cp -f "$wp/whitepaper.light.html" "$pub/whitepaper.light.html"
+              [ -e "$wp/whitepaper.dark.html" ]  && cp -f "$wp/whitepaper.dark.html"  "$pub/whitepaper.dark.html"
+            fi
+
+            bl=""
+            if [ -d "$repo/../blog" ]; then
+              bl="$(nix build "$repo/../blog" --no-link --print-out-paths 2>/dev/null || true)"
+              [ -n "$bl" ] || echo "warn: blog build failed — /blogs will degrade" >&2
+            else
+              echo "warn: ../blog not checked out — /blogs will degrade" >&2
+            fi
+            if [ -n "$bl" ]; then
+              for dir in "$bl"/*/; do
+                [ -d "$dir" ] || continue
+                slug="$(basename "$dir")"
+                [ -e "$dir/main.pdf" ]        && cp -f "$dir/main.pdf"        "$pub/blogs/''${slug}.pdf"
+                [ -e "$dir/main.light.html" ] && cp -f "$dir/main.light.html" "$pub/blogs/''${slug}.light.html"
+                [ -e "$dir/main.dark.html" ]  && cp -f "$dir/main.dark.html"  "$pub/blogs/''${slug}.dark.html"
+              done
+            fi
+            # nix-store copies land read-only; make them writable so a later run
+            # can overwrite. Tolerate an empty glob.
+            chmod -f u+w "$pub"/whitepaper.* "$pub"/blogs/* 2>/dev/null || true
+          '';
+        };
+
         # ── frontend (Next.js marketing site) ───────────────────────────────
         # Standalone npm app under frontend/. `npm install` generates/updates the
         # lockfile and installs into frontend/node_modules on first run.
@@ -158,20 +207,9 @@
           name = "run-frontend";
           runtimeInputs = with pkgs; [ nodejs git ];
           text = ''
+            ${populateDocs}/bin/populate-docs || true
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo/frontend"
-            cp -f ${logoSrc} ./public/assets/logo.svg
-            cp -f ${whitepaperPdf} ./public/whitepaper.pdf
-            cp -f ${whitepaperHtmlLight} ./public/whitepaper.light.html
-            cp -f ${whitepaperHtmlDark} ./public/whitepaper.dark.html
-            mkdir -p ./public/blogs
-            for dir in ${blogsDir}/*/; do
-              slug=$(basename "$dir")
-              cp "$dir/main.pdf" "./public/blogs/''${slug}.pdf"
-              cp "$dir/main.light.html" "./public/blogs/''${slug}.light.html"
-              cp "$dir/main.dark.html" "./public/blogs/''${slug}.dark.html"
-            done
-            chmod 666 ./public/blogs/*
             [ -d node_modules/next ] || npm install
             exec npm run dev
           '';
@@ -315,18 +353,8 @@
               + combined.shellHook
               + ''
                 cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
-                cp -f ${logoSrc} ./frontend/public/assets/logo.svg
-                cp -f ${whitepaperPdf} ./frontend/public/whitepaper.pdf
-                cp -f ${whitepaperHtmlLight} ./frontend/public/whitepaper.light.html
-                cp -f ${whitepaperHtmlDark} ./frontend/public/whitepaper.dark.html
-                mkdir -p ./frontend/public/blogs
-                for dir in ${blogsDir}/*/; do
-                  slug=$(basename "$dir")
-                  cp "$dir/main.pdf" "./frontend/public/blogs/''${slug}.pdf"
-                  cp "$dir/main.light.html" "./frontend/public/blogs/''${slug}.light.html"
-                  cp "$dir/main.dark.html" "./frontend/public/blogs/''${slug}.dark.html"
-                done
-                chmod 666 ./frontend/public/blogs/*
+                # Logo + whitepaper/blog docs into public/ (token-free, best-effort).
+                ${populateDocs}/bin/populate-docs || true
 
                 ${dyldFallback}
                 ${protocEnv}
@@ -340,12 +368,17 @@
               clang-tools
               rust
               mold
+              sccache
               postgresql
               playwright-driver.browsers
             ] ++ pre-commit-check.enabledPackages ++ combined.enabledPackages;
 
             env.RUST_BACKTRACE = 1;
             env.RUST_LIB_BACKTRACE = 0;
+
+            # Shared compile cache across builds; incremental off (sccache can't cache it).
+            env.RUSTC_WRAPPER = "sccache";
+            env.CARGO_INCREMENTAL = "0";
 
             # Playwright (frontend visual tests): drive the nixpkgs browsers instead
             # of the npm-downloaded ones (those dynamically link libs absent on
