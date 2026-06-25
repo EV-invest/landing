@@ -3,13 +3,13 @@ import { Container } from "@evinvest/uikit";
 const REASONS = [
   {
     n: "01",
-    title: "Coastal mandate",
-    body: "A focused thesis: premium coastal real estate in one of Asia's fastest-growing markets.",
+    title: "Focus",
+    body: "A focused thesis: 100% concentration and expertise in today's most promising emerging market.",
   },
   {
     n: "02",
     title: "Institutional rigor",
-    body: "Bridgewater-grade research and underwriting on assets you can stand in front of.",
+    body: "Data-driven research and underwriting on assets you can stand in front of.",
   },
   {
     n: "03",

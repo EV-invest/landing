@@ -74,7 +74,7 @@ export function ResearchA() {
             Academic Rigor
           </span>
           <h2 className="text-3xl sm:text-5xl font-serif-display text-white font-light leading-tight">
-            Bridgewater-Grade{" "}
+            Data-Driven{" "}
             <span className="italic text-main-accent-t1 font-serif">
               Research &amp; Insights
             </span>
@@ -94,11 +94,10 @@ export function ResearchA() {
               <div
                 key={idx}
                 onClick={() => setActive(idx)}
-                className={`p-6 border border-l-2 cursor-pointer transition-all duration-300 ${
-                  active === idx
-                    ? "research-panel border-main-mist/10 border-l-main-accent-t1 shadow-lg shadow-main-black/50"
-                    : "bg-main-card/40 border-main-mist/10 border-l-transparent hover:bg-main-card/70 hover:border-l-main-mist/30"
-                }`}
+                className={`p-6 border border-l-2 cursor-pointer transition-all duration-300 ${active === idx
+                  ? "research-panel border-main-mist/10 border-l-main-accent-t1 shadow-lg shadow-main-black/50"
+                  : "bg-main-card/40 border-main-mist/10 border-l-transparent hover:bg-main-card/70 hover:border-l-main-mist/30"
+                  }`}
               >
                 <span className="text-[10px] font-mono-tech text-main-accent-t1 uppercase tracking-widest block mb-2">
                   {r.cat}

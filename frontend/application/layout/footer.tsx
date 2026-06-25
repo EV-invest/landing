@@ -72,7 +72,7 @@ export function Footer() {
               Newsletter
             </h4>
             <Text className="text-xs mb-4">
-              Subscribe to our Bridgewater-grade monthly coastal macro reports.
+              Subscribe, to receive our macro reports
             </Text>
             <div className="flex border border-main-mist/20">
               <input
