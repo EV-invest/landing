@@ -44,16 +44,12 @@
           lastSupportedVersion = "nightly-2026-05-12";
           containerRelease = { registry = "ghcr.io/EV-invest"; };
           gitignore.extra = ''
-            ## Generated (populated from the ev_assets flake input)
+            ## frontend/public/ is a populate-docs build staging dir: assets/ is the
+            ## only source, everything else (whitepaper, blogs, mfe, logo, …) is
+            ## populated at `nix run` time. Ignore the lot; keep just assets/.
+            frontend/public/*
+            !frontend/public/assets/
             frontend/public/assets/logo.svg
-            ## Generated (populated from the whitepaper flake input)
-            frontend/public/whitepaper.pdf
-            frontend/public/whitepaper.light.html
-            frontend/public/whitepaper.dark.html
-            ## Generated (populated from the blog flake input)
-            frontend/public/blogs/
-            ## Generated (built from the ../real_estate_allocation embed)
-            frontend/public/mfe/
             ## Node / Next.js
             node_modules/
             .next/
@@ -73,7 +69,6 @@
             CLAUDE.md
             .claude/
             .pre-commit-config.yaml
-            frontend/public/blogs/
           '';
           jobs = {
             warnings.augment = [ "tokei" "code-duplication" ];

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE } from "@/shared/config/site";
 
 // Web App Manifest (served at /manifest.webmanifest). Static — no request data.
-// Icons are the committed brand raster PNGs in public/ (icon-192/512/maskable).
+// Icons are the committed brand raster PNGs in public/assets/ (icon-192/512/maskable).
 export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -16,19 +16,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: SITE.theme.black,
     icons: [
       {
-        src: "/icon-192.png",
+        src: "/assets/icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-512.png",
+        src: "/assets/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icon-maskable-512.png",
+        src: "/assets/icon-maskable-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
