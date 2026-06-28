@@ -89,26 +89,6 @@
         "type": "github"
       }
     },
-    "nix2container": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1775487831,
-        "narHash": "sha256-2lguQpLPQaxpQCJjXhmEEAfabwsAhkP29Z7fgLzHARA=",
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "rev": "76be9608a7f4d6c985d28b0e7be903ae2547df3e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1781577229,
@@ -213,7 +193,6 @@
       "inputs": {
         "ev_assets": "ev_assets",
         "flake-utils": "flake-utils",
-        "nix2container": "nix2container",
         "nixpkgs": "nixpkgs",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-overlay": "rust-overlay",
@@ -293,11 +272,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1781994941,
-        "narHash": "sha256-xqeKwe03n5JVotCRpDCpE1orEYJAtIQC1daSUHCmSUM=",
+        "lastModified": 1782654856,
+        "narHash": "sha256-Q5xQhovzzcf8kjAKb7oqUDnVkj/jJp9nasoLp9ccjdM=",
         "owner": "valeratrades",
         "repo": "v_flakes",
-        "rev": "a16335cd3184eba8179239ff59111baa4d971238",
+        "rev": "de4ac48480bec237c34363d12ea23217335af38b",
         "type": "github"
       },
       "original": {

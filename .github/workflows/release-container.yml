@@ -1,0 +1,35 @@
+jobs:
+  release:
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - uses: actions/checkout@v4
+    - name: Validate tag (strict semver)
+      run: "TAG=\"${{ github.ref_name }}\"\nif [[ ! \"$TAG\" =~ ^v[0-9]+\\.[0-9]+\\\
+        .[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then\n  echo \"::error::tag '$TAG' is not a\
+        \ strict semver vX.Y.Z[-prerelease] — refusing to release\" >&2\n  exit 1\n\
+        fi\n"
+      shell: bash
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+    - name: Build + push containers
+      run: "sys=\"$(nix eval --impure --raw --expr builtins.currentSystem)\"\nfor\
+        \ name in $(nix eval --json \".#containers.$sys\" --apply builtins.attrNames\
+        \ | jq -r '.[]'); do\n  echo \"::group::$name\"\n  RESULT=\"$(nix build \"\
+        .#$name-container\" --no-link --print-out-paths)\"\n  nix run nixpkgs#skopeo\
+        \ -- copy \\\n    \"docker-archive:$RESULT\" \\\n    \"docker://ghcr.io/EV-invest/$name:${{\
+        \ github.ref_name }}\"\n  echo \"::endgroup::\"\ndone\n"
+      shell: bash
+name: Release containers
+'on':
+  push:
+    tags:
+    - v[0-9]+.*
+permissions:
+  contents: read
+  packages: write

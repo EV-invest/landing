@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { SITE } from "@/shared/config/site";
 
+// REA's backend origin, advertised to the same-origin-served real-estate MFE
+// bundle via `<meta name="rea-url">` (the bundle reads it for its data fetch +
+// dashboard breakout links; its static assets are same-origin here). Per-env via
+// NEXT_PUBLIC_REA_URL; defaults to the dev `dx serve` port.
+const reaUrl = process.env.NEXT_PUBLIC_REA_URL ?? "http://localhost:59079";
+
 // Root metadata, re-exported by app/layout.tsx. Kept a STATIC export (no
 // request data) so it streams correctly even though the layout's `await
 // cookies()` makes routes dynamic — do NOT switch this to generateMetadata.
@@ -20,6 +26,8 @@ export const metadata: Metadata = {
   // Self-referencing canonical collapses UTM / analytics query-string duplicates
   // (PostHog/Umami params) onto the clean URL. Resolved against metadataBase.
   alternates: { canonical: "/" },
+  // Read by the real-estate MFE bundle (`rea_origin()`) for its REA backend calls.
+  other: { "rea-url": reaUrl },
   robots: {
     index: true,
     follow: true,

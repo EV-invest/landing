@@ -14,8 +14,8 @@ into. The shared design system ships as the published `@evinvest/uikit`.
 
 ## Deployment
 
-Target: `inferno_vps_tokyo` (Ubuntu 22.04, 2 vCPU, 2 GiB RAM, 30 GiB disk).
-IP `176.97.73.24`. Too weak to build — artifacts built locally and shipped.
+Target: `${vps_addr}` (Ubuntu 22.04, 2 vCPU, 2 GiB RAM, 30 GiB disk).
+IP `${vps_addr}`. Too weak to build — artifacts built locally and shipped.
 
 ### Architecture
 
@@ -43,18 +43,19 @@ NEXT_PUBLIC_SITE_URL=https://evinvest.ltd NEXT_PUBLIC_REA_URL="" \
   APP_ENV=production NEXT_PUBLIC_APP_ENV=production npm run build
 
 cd frontend && tar czf - .next/standalone .next/static public | \
-  ssh inferno_vps_tokyo 'tar xzf - -C /opt/evinvest/app && systemctl restart evinvest-frontend'
+  ssh ${vps_addr} 'tar xzf - -C /opt/evinvest/app && systemctl restart evinvest-frontend'
 ```
 
 #### Backend
 
-`nix build .#backend-image` then export + ship + load. See `flake.nix`.
+Production deploys via tag → GHCR → Flux (see the `gitops` repo). For a manual
+load, `nix build .#container` emits a `docker-archive` tarball. See `flake.nix`.
 
 ```sh
-nix build .#backend-image
-nix run .#backend-image.copyTo -- oci-archive:/tmp/backend.tar:evinvest-backend:latest
-scp /tmp/backend.tar inferno_vps_tokyo:/tmp/
-ssh inferno_vps_tokyo 'podman load < /tmp/backend.tar && systemctl restart evinvest-backend'
+nix build .#container   # result → a docker-archive .tar.gz
+skopeo copy docker-archive:result docker://ghcr.io/EV-invest/landing:v0.0.1
+# or load locally:
+podman load < result
 ```
 
 #### REA embed
@@ -65,8 +66,8 @@ Built with `nix build .#bin`, shipped as a nix closure tarball (no container).
 nix build .#bin
 nix-store -qR $(nix build .#bin --no-link --print-out-paths --no-warn-dirty) \
   | sort -u | xargs tar czf /tmp/rea.tar.gz
-scp /tmp/rea.tar.gz inferno_vps_tokyo:/tmp/
-ssh inferno_vps_tokyo '
+scp /tmp/rea.tar.gz ${vps_addr}:/tmp/
+ssh ${vps_addr} '
   cd / && gunzip -c /tmp/rea.tar.gz | tar xf -
   systemctl restart evinvest-rea
 '
