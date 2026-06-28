@@ -15,10 +15,8 @@
     # the local sibling clones (../whitepaper, ../blog) at runtime — token-free
     # (their own inputs are public) and best-effort (the frontend still boots if a
     # clone is missing). Refresh = `git -C ../whitepaper pull` etc.
-    # OCI image builder for the production backend (`nix build .#backend-image`).
-    nix2container = { url = "github:nlewo/nix2container"; inputs.nixpkgs.follows = "nixpkgs"; };
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets, nix2container }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -44,6 +42,7 @@
           inherit pkgs pname rs;
           enable = true;
           lastSupportedVersion = "nightly-2026-05-12";
+          containerRelease = { registry = "ghcr.io/EV-invest"; };
           gitignore.extra = ''
             ## Generated (populated from the ev_assets flake input)
             frontend/public/assets/logo.svg
@@ -53,6 +52,8 @@
             frontend/public/whitepaper.dark.html
             ## Generated (populated from the blog flake input)
             frontend/public/blogs/
+            ## Generated (built from the ../real_estate_allocation embed)
+            frontend/public/mfe/
             ## Node / Next.js
             node_modules/
             .next/
@@ -119,24 +120,16 @@
           buildInputs = with pkgs; [ openssl ];
           doCheck = false;
         };
-        n2c = nix2container.packages.${system}.nix2container;
-        backendImage = n2c.buildImage {
-          name = "evinvest-backend";
-          tag = "latest";
-          copyToRoot = pkgs.buildEnv {
-            name = "image-root";
-            paths = with pkgs; [ backendBin cacert ];
-            pathsToLink = [ "/bin" ];
-          };
-          config = {
-            Entrypoint = [ "/bin/backend" ];
-            Env = [
-              "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-              "BIND_ADDR=0.0.0.0:58844"
-              "APP_ENV=production"
-            ];
-            ExposedPorts = { "58844/tcp" = { }; };
-          };
+        # DATABASE_URL arrives via the k8s Secret gitops owns, not baked in.
+        container = v_flakes.container.implement {
+          inherit pkgs;
+          pname = "landing";
+          port = 58844;
+          healthPath = "/api/v1/health";
+          criticality = "high";
+          entrypoint = [ "/bin/backend" ];
+          contents = [ backendBin ];
+          imageEnv = [ "BIND_ADDR=0.0.0.0:58844" "APP_ENV=production" ];
         };
 
         # ── shared shims ────────────────────────────────────────────────────
@@ -194,6 +187,23 @@
                 [ -e "$dir/main.dark.html" ]  && cp -f "$dir/main.dark.html"  "$pub/blogs/''${slug}.dark.html"
               done
             fi
+
+            # Real-estate MFE bundle (the `embeds` artifact from the sibling REA
+            # repo), baked into public/ and served same-origin at /mfe — the host
+            # owns the bundle's static assets; REA's container no longer serves it.
+            mfe=""
+            if [ -d "$repo/../real_estate_allocation" ]; then
+              mfe="$(nix build "$repo/../real_estate_allocation#embeds" --no-link --print-out-paths 2>/dev/null || true)"
+              [ -n "$mfe" ] || echo "warn: real-estate embed build failed — portfolio MFE will degrade" >&2
+            else
+              echo "warn: ../real_estate_allocation not checked out — portfolio MFE will degrade" >&2
+            fi
+            if [ -n "$mfe" ]; then
+              rm -rf "$pub/mfe"; mkdir -p "$pub/mfe"
+              cp -rL "$mfe"/. "$pub/mfe/"
+              chmod -R u+w "$pub/mfe"
+            fi
+
             # nix-store copies land read-only; make them writable so a later run
             # can overwrite. Tolerate an empty glob.
             chmod -f u+w "$pub"/whitepaper.* "$pub"/blogs/* 2>/dev/null || true
@@ -337,13 +347,10 @@
           gen-api = { type = "app"; program = "${runGenApi}/bin/run-gen-api"; };
         };
 
-        # `nix build .#backend`       → the Axum binary (result/bin/backend)
-        # `nix build .#backend-image` → OCI image; load with `result.copyTo`
         packages = {
           default = backendBin;
           backend = backendBin;
-          backend-image = backendImage;
-        };
+        } // container.packages;
 
         devShells.default =
           with pkgs;

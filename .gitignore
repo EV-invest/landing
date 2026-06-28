@@ -79,6 +79,8 @@ frontend/public/whitepaper.light.html
 frontend/public/whitepaper.dark.html
 ## Generated (populated from the blog flake input)
 frontend/public/blogs/
+## Generated (built from the ../real_estate_allocation embed)
+frontend/public/mfe/
 ## Node / Next.js
 node_modules/
 .next/
