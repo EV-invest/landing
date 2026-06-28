@@ -48,13 +48,14 @@ cd frontend && tar czf - .next/standalone .next/static public | \
 
 #### Backend
 
-`nix build .#backend-image` then export + ship + load. See `flake.nix`.
+Production deploys via tag → GHCR → Flux (see the `gitops` repo). For a manual
+load, `nix build .#container` emits a `docker-archive` tarball. See `flake.nix`.
 
 ```sh
-nix build .#backend-image
-nix run .#backend-image.copyTo -- oci-archive:/tmp/backend.tar:evinvest-backend:latest
-scp /tmp/backend.tar ${vps_addr}:/tmp/
-ssh ${vps_addr} 'podman load < /tmp/backend.tar && systemctl restart evinvest-backend'
+nix build .#container   # result → a docker-archive .tar.gz
+skopeo copy docker-archive:result docker://ghcr.io/EV-invest/landing:v0.0.1
+# or load locally:
+podman load < result
 ```
 
 #### REA embed
