@@ -1,23 +1,6 @@
-/**
- * Next.js instrumentation hook — runs once per server process on startup.
- *
- * Initialises `@sentry/nextjs` for the active runtime so it pairs with the
- * build-time `withSentryConfig` integration in `next.config.ts`:
- * - `nodejs` → server init (API routes, RSC, SSR), traces 0.1 prod / 1.0 else
- * - `edge`   → edge init (`proxy.ts`), tracing disabled
- *
- * The vendor-neutral pieces (the `ErrorSink`, `ErrorBoundary`, and browser
- * provider) come from `@evinvest/error-monitoring`; only this Next-specific
- * server/edge bootstrap stays on `@sentry/nextjs` directly. The lib's
- * `register` initialises via `@sentry/node`, which would drop the Next.js
- * source-map frame rewriting (readable server stack traces) and Next-aware
- * request tracing that `withSentryConfig` wires up — the same
- * Next/Sentry-integration-seam exception already applied to `next.config.ts`.
- * The sample-rate default is still the lib's `defaultTracesSampleRate`.
- *
- * `onRequestError` wires Sentry into Next.js's built-in server-error hook so
- * unhandled Server Component / Route Handler errors are captured automatically.
- */
+// Server/edge Sentry bootstrap. Stays on @sentry/nextjs directly (not the
+// vendor-neutral lib) so withSentryConfig's source-map frame rewriting and
+// Next-aware request tracing survive.
 import * as Sentry from "@sentry/nextjs";
 import { defaultTracesSampleRate } from "@evinvest/error-monitoring";
 

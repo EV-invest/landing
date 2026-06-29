@@ -5,8 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { ErrorBoundary } from "@/features/error-monitoring";
 import { Toaster, TooltipProvider } from "@evinvest/uikit";
 
-// Global client providers. The site is intentionally dark-only, so the theme is
-// forced rather than switchable (next-themes still owns the `class` on <html>).
+// Dark-only: theme is forced, not switchable.
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary>

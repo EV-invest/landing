@@ -1,20 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { SITE } from "@/shared/config/site";
 
-// REA's backend origin, advertised to the same-origin-served real-estate MFE
-// bundle via `<meta name="rea-url">` (the bundle reads it for its data fetch +
-// dashboard breakout links; its static assets are same-origin here). Per-env via
-// NEXT_PUBLIC_REA_URL; defaults to the dev `dx serve` port.
+// REA's backend origin, advertised to the MFE bundle via <meta name="rea-url">.
 const reaUrl = process.env.NEXT_PUBLIC_REA_URL ?? "http://localhost:59079";
 
-// Root metadata, re-exported by app/layout.tsx. Kept a STATIC export (no
-// request data) so it streams correctly even though the layout's `await
-// cookies()` makes routes dynamic — do NOT switch this to generateMetadata.
-//
-// Icons are intentionally absent: the app/icon.svg, app/favicon.ico and
-// app/apple-icon.png file conventions own them (declaring `icons` here too would
-// emit duplicate <link> tags). OG/Twitter images are likewise owned by the
-// app/opengraph-image.* + app/twitter-image.* conventions, so no `images` here.
+// Must stay a STATIC export (no request data) so it streams despite the layout's
+// `await cookies()` making routes dynamic — do NOT switch to generateMetadata.
+// Icons/OG images are owned by the app/icon.* + app/opengraph-image.* conventions.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {

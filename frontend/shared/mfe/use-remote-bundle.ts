@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 
 import { containRemoteStyles } from "./contain-remote-styles";
 
-// Loads a microfrontend's self-registering ESM bundle (once per tag), then waits
-// for its custom element to upgrade. Returns false while loading and if the
-// bundle fails (the caller shows its fallback). Client-only — registration runs
-// in the browser.
+// Loads a remote's ESM bundle once per tag and resolves true when its element
+// upgrades; stays false while loading or on failure (caller shows its fallback).
 export function useRemoteBundle(tag: string, scriptUrl: string): boolean {
   const [ready, setReady] = useState(false);
 

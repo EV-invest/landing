@@ -1,21 +1,12 @@
 "use client";
 
-// The one composition primitive the landing host knows. It loads a
-// microfrontend's self-registering ESM bundle by URL, waits for its custom
-// element to upgrade, then mounts <tag> inside a host node — mapping props to
-// attributes and CustomEvents back to callbacks. Identical for JS (React, …) and
-// Rust/WASM (Dioxus, Leptos) remotes.
+// Loads a remote's self-registering ESM bundle, waits for its custom element to
+// upgrade, then mounts <tag> imperatively (not JSX, to dodge React's
+// attribute/property quirks for any framework's element). Light DOM only.
 //
-// Remotes are client-only, so this is a "use client" island: server components
-// above stream normally and show the fallback until the element is ready. The
-// element is created imperatively (not via JSX) so it works for any framework's
-// custom element without React's attribute/property quirks. Light DOM only —
-// Tailwind v4 @property tokens break inside shadow roots.
-//
-// Trust boundary: scriptUrl is operator-controlled via the in-repo registry —
-// treat registry edits as code. It executes third-party JS in the landing origin
-// (no sandbox); gate it against an origin allowlist if the registry ever becomes
-// user-/dynamically-sourced.
+// Trust boundary: scriptUrl runs third-party JS in the landing origin with no
+// sandbox. It's operator-controlled via the in-repo registry — treat registry edits
+// as code; add an origin allowlist if the registry ever becomes user-sourced.
 
 import { useEffect, useRef, type ReactNode } from "react";
 

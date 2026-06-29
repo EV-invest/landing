@@ -6,14 +6,7 @@ import { cn } from "@/shared/lib/utils";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 
-/**
- * App error boundary — the design-system fallback over `@evinvest/error-monitoring`'s
- * vendor-neutral `ErrorBoundary`.
- *
- * The package boundary catches the error, reports it to Sentry (`sentry={Sentry}`,
- * with `{ componentStack }` as context), and renders the supplied `fallback`. The
- * package ships no markup, so the app owns this fallback UI.
- */
+// The app's fallback UI over the lib's vendor-neutral ErrorBoundary (which ships no markup).
 export function ErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <Boundary

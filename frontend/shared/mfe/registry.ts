@@ -1,9 +1,5 @@
-// Server-side reader for the microfrontend registry (uses node:fs — server-only).
-//
-// The registry maps logical names to {tag, scriptUrl, kind}. Independent deploys
-// land by editing this file (or, in production, a per-env config) — never by
-// rebuilding landing. Served openly to the browser via /api/mfe-registry, so its
-// scriptUrls are operator-controlled and public — treat registry edits as code.
+// Server-only reader for the microfrontend registry (node:fs). Served openly via
+// /api/mfe-registry, so its scriptUrls are public — treat registry edits as code.
 
 import { promises as fs } from "node:fs";
 import path from "node:path";

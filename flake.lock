@@ -16,7 +16,39 @@
         "type": "github"
       }
     },
+    "ev_assets_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1780774694,
+        "narHash": "sha256-cX7v5j65ofk5RVkInm7hWjIZTcfgRI2UBorSF2cELWI=",
+        "owner": "EV-invest",
+        "repo": "assets",
+        "rev": "c87fee926a625074f26e607669fcc6ed01656bdf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "EV-invest",
+        "repo": "assets",
+        "type": "github"
+      }
+    },
     "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767039857,
+        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "flake-compat_2": {
       "flake": false,
       "locked": {
         "lastModified": 1767039857,
@@ -68,9 +100,67 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "inputs": {
+        "systems": "systems_3"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_4": {
+      "inputs": {
+        "systems": "systems_4"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "gitignore": {
       "inputs": {
         "nixpkgs": [
+          "pre-commit-hooks",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1709087332,
+        "narHash": "sha256-HG2cCnktfHsKV0s4XW83gU3F57gaTljL9KNSuG6bnQs=",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "637db329424fd7e46cf4185293b9cc8c88c95394",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
+    "gitignore_2": {
+      "inputs": {
+        "nixpkgs": [
+          "real_estate_allocation",
           "pre-commit-hooks",
           "nixpkgs"
         ]
@@ -127,17 +217,88 @@
         "type": "github"
       }
     },
+    "pre-commit-hooks_2": {
+      "inputs": {
+        "flake-compat": "flake-compat_2",
+        "gitignore": "gitignore_2",
+        "nixpkgs": [
+          "real_estate_allocation",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778507602,
+        "narHash": "sha256-kTwur1wV+01SdqskVMSo6JMEpg71ps3HpbFY2GsflKs=",
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "rev": "61ab0e80d9c7ab14c256b5b453d8b3fb0189ba0a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "type": "github"
+      }
+    },
+    "real_estate_allocation": {
+      "inputs": {
+        "ev_assets": "ev_assets_2",
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pre-commit-hooks": "pre-commit-hooks_2",
+        "rust-overlay": "rust-overlay",
+        "v_flakes": "v_flakes"
+      },
+      "locked": {
+        "lastModified": 1782754745,
+        "narHash": "sha256-y0QJter83b0gxGpp3Hzik3wyCz/VEOWj5jb2rnoNQxc=",
+        "ref": "release",
+        "rev": "c063673a24d6ac99feb23e0ae581ab19b894bc3b",
+        "revCount": 60,
+        "type": "git",
+        "url": "ssh://git@github.com/ev-invest/real_estate_allocation"
+      },
+      "original": {
+        "ref": "release",
+        "type": "git",
+        "url": "ssh://git@github.com/ev-invest/real_estate_allocation"
+      }
+    },
     "root": {
       "inputs": {
         "ev_assets": "ev_assets",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "pre-commit-hooks": "pre-commit-hooks",
-        "rust-overlay": "rust-overlay",
-        "v_flakes": "v_flakes"
+        "real_estate_allocation": "real_estate_allocation",
+        "rust-overlay": "rust-overlay_2",
+        "v_flakes": "v_flakes_2"
       }
     },
     "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "real_estate_allocation",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1781666412,
+        "narHash": "sha256-Tzgol+o9+V4lK99r4AERI4pyFoZwg6Si2xUd1wc/WQU=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "d0e019d9543f0f1215a3d961fc4dca59aa29c638",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -187,9 +348,66 @@
         "type": "github"
       }
     },
+    "systems_3": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_4": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
     "v_flakes": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": [
+          "real_estate_allocation",
+          "nixpkgs"
+        ],
+        "rust-overlay": [
+          "real_estate_allocation",
+          "rust-overlay"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782740585,
+        "narHash": "sha256-XcLofuo/nXHSzK+N0uYJF1Z3TeuEo62PmBqoa1PiXCg=",
+        "owner": "valeratrades",
+        "repo": "v_flakes",
+        "rev": "5a070807b73ccabc139dd3cefa7ea9799d9defc0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "valeratrades",
+        "ref": "v1.6",
+        "repo": "v_flakes",
+        "type": "github"
+      }
+    },
+    "v_flakes_2": {
+      "inputs": {
+        "flake-utils": "flake-utils_4",
         "nixpkgs": [
           "nixpkgs"
         ],

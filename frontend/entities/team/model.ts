@@ -7,7 +7,6 @@ export type TeamMember = {
   bio: string;
 };
 
-// Named team members — name lives once and feeds both the heading and the image alt text.
 export const TEAM: TeamMember[] = [
   {
     photo: ASSETS.team_member_1,
