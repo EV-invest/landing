@@ -11,7 +11,7 @@ import { useExperimentEvent } from "@/features/ab-variant";
 export function HeroBCta({ className }: { className?: string }) {
   const track = useExperimentEvent();
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
+    <div className="flex flex-row items-center gap-4">
       <Button
         className={className}
         onClick={() =>

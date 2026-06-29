@@ -17,7 +17,7 @@ export function HeroACta({ scrollHint }: { scrollHint: ReactNode }) {
   const track = useExperimentEvent();
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div className="flex flex-row items-center gap-4">
         <Button
           className="bg-main-mist text-main-brand hover:bg-main-accent-t1 hover:text-main-black hover:scale-105 active:scale-95 transition-all duration-300 font-mono-tech text-xs tracking-widest uppercase px-8 py-6 rounded-none"
           onClick={() =>
