@@ -1,8 +1,5 @@
 {
   inputs = {
-    # Pin Determinate Nix for anyone who uses this repo (lazy-trees on) so local evals
-    # match CI — same Nix CI's magic-nix-cache feeds, so input/output hashes line up.
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
@@ -18,7 +15,7 @@
     # NB: the whitepaper + blog are NOT flake inputs. Both are private repos, and declaring them here forced every `nix run`/`nix develop`/`nix flake check` to authenticate to GitHub just to evaluate. Instead `populate-docs` builds the local sibling clones (../whitepaper, ../blog) at runtime — token-free (their own inputs are public) and best-effort (the frontend still boots if a clone is missing).
     # Refresh = `git -C ../whitepaper pull` etc.
   };
-  outputs = { self, determinate, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
