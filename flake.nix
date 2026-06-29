@@ -129,6 +129,7 @@
           env = {
             NEXT_TELEMETRY_DISABLED = "1";
             NEXT_PUBLIC_BUILD_VERSION = buildVersion;
+            NEXT_PUBLIC_REA_URL = "https://rea.evinvest.ltd";
           };
           # call next build directly (npm run build chains stylelint, a CI gate that shouldn't fail the image).
           buildPhase = ''
