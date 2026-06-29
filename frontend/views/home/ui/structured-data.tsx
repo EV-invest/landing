@@ -45,16 +45,14 @@ function officeNode(office: Office): JsonLdNode {
     telephone: office.telephone,
     geo: office.geo
       ? {
-          "@type": "GeoCoordinates",
-          latitude: office.geo.lat,
-          longitude: office.geo.lng,
-        }
+        "@type": "GeoCoordinates",
+        latitude: office.geo.lat,
+        longitude: office.geo.lng,
+      }
       : undefined,
   });
 }
 
-// Skip placeholder identities ("Elisey TODO") — never publish fake people in
-// structured data. Real names appear automatically once entities/team is filled.
 function personNodes(): JsonLdNode[] {
   return TEAM.filter(member => !/\btodo\b/i.test(member.name)).map(member =>
     ldCompact({
@@ -102,13 +100,13 @@ function homeGraph(): JsonLdNode {
     contactPoint:
       SITE.email || hq?.telephone
         ? ldCompact({
-            "@type": "ContactPoint",
-            contactType: "investor relations",
-            email: SITE.email,
-            telephone: hq?.telephone,
-            areaServed: "Worldwide",
-            availableLanguage: ["en"],
-          })
+          "@type": "ContactPoint",
+          contactType: "investor relations",
+          email: SITE.email,
+          telephone: hq?.telephone,
+          areaServed: "Worldwide",
+          availableLanguage: ["en"],
+        })
         : undefined,
     subOrganization: offices.map(office => ({ "@id": office["@id"] })),
     employee: people.map(person => ({ "@id": person["@id"] })),
