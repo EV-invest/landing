@@ -56,6 +56,7 @@ impl AppConfig {
 			_ => None,
 		};
 
+		//TODO!!!: this is bad, switch to Defaults and `config` crate. Random fallbacks really bad
 		let mail_from = env::var("MAIL_FROM").unwrap_or_else(|_| "EV Investment <careers@evinvest.vn>".to_string());
 		let mail_team = env::var("MAIL_TEAM").unwrap_or_else(|_| "careers@evinvest.vn".to_string());
 		let site_url = env::var("SITE_URL").unwrap_or_else(|_| "https://evinvest.vn".to_string());

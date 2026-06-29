@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { type LucideIcon } from "lucide-react";
 import { Button } from "@evinvest/uikit";
 import { Text } from "@/shared/ui/text";
@@ -6,8 +7,7 @@ import { FrameCard } from "@/shared/ui/frame-card";
 /**
  * Non-person card — centred icon-disc, title, blurb, outline CTA button.
  * Used for open-role and LP-network slots. Only the icon, accent color, and
- * copy differ between instances. `onCtaClick` is supplied by the
- * {@link TeamPlaceholders} client island.
+ * copy differ between instances.
  */
 export function PlaceholderCard({
   icon: Icon,
@@ -15,7 +15,7 @@ export function PlaceholderCard({
   title,
   body,
   cta,
-  onCtaClick,
+  href,
   heading,
   sub,
 }: {
@@ -24,7 +24,7 @@ export function PlaceholderCard({
   title: string;
   body: string;
   cta: string;
-  onCtaClick: () => void;
+  href: string;
   heading: string;
   sub: string;
 }) {
@@ -52,11 +52,11 @@ export function PlaceholderCard({
             </Text>
           </div>
           <Button
-            onClick={onCtaClick}
+            asChild
             variant="outline"
             className="border-main-mist/15 text-main-mist/80 hover:border-main-accent-t1 hover:text-main-accent-t1 text-xs py-1 h-auto bg-transparent"
           >
-            {cta}
+            <Link href={href}>{cta}</Link>
           </Button>
         </div>
       </div>
