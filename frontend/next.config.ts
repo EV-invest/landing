@@ -1,7 +1,23 @@
+import { execSync } from "node:child_process";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+// The Nix/CI build injects NEXT_PUBLIC_BUILD_VERSION (the release tag). A bare
+// `npm run dev` has no such env, so fall back to git so the footer still shows a
+// version; "unknown" only when git is absent too (e.g. the hermetic sandbox,
+// where the env var is always set anyway).
+const buildVersion =
+  process.env.NEXT_PUBLIC_BUILD_VERSION ??
+  (() => {
+    try {
+      return execSync("git describe --tags --always", { encoding: "utf8" }).trim();
+    } catch {
+      return "unknown";
+    }
+  })();
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_BUILD_VERSION: buildVersion },
   reactStrictMode: true,
   // Self-contained production server (.next/standalone) so the weak VPS runs
   // `node server.js` without an `npm install` — we can't build there.

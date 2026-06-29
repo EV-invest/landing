@@ -1,11 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { Container } from "@evinvest/uikit";
 import { Text } from "@/shared/ui/text";
 import { Logo } from "@/shared/ui/logo";
 import { notifyPlaceholder } from "@/shared/lib/utils";
 
+const version = process.env.NEXT_PUBLIC_BUILD_VERSION ?? "unknown";
+
 export function Footer() {
+  useEffect(() => {
+    console.log(`EV Investment — build ${version}`);
+  }, []);
+
   // 6. FOOTER (Minimalist, structured)
   return (
     <footer className="bg-main-black border-t border-main-mist/10 py-16">
@@ -91,7 +98,10 @@ export function Footer() {
         </div>
 
         <div className="border-t border-main-mist/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-mono-tech text-main-mist/40">
-          <p>© 2026 EV Investment. All rights reserved.</p>
+          <p>
+            © 2026 EV Investment. All rights reserved.{" "}
+            <span className="text-main-mist/30">{version}</span>
+          </p>
         </div>
       </Container>
     </footer>

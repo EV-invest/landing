@@ -42,6 +42,10 @@
         pre-commit-check = pre-commit-hooks.lib.${system}.run (v_flakes.files.preCommit { inherit pkgs; });
         pname = "landing";
         backendCargo = (builtins.fromTOML (builtins.readFile ./backend/Cargo.toml)).package;
+        # Deployed version, shown in the footer. CI passes the release tag via
+        # BUILD_VERSION (needs --impure); pure builds fall back to the commit rev.
+        buildVersion = let tag = builtins.getEnv "BUILD_VERSION"; in
+          if tag != "" then tag else self.shortRev or self.dirtyShortRev or "dev";
 
         logoSrc = "${ev_assets}/logo/logo.svg";
 
@@ -117,7 +121,10 @@
           version = "1.0.0";
           src = ./frontend;
           npmDepsHash = "sha256-VeEqSU8km3V5JVfkN5k42/A9LtlFxYmIev04z13z9tU=";
-          env.NEXT_TELEMETRY_DISABLED = "1";
+          env = {
+            NEXT_TELEMETRY_DISABLED = "1";
+            NEXT_PUBLIC_BUILD_VERSION = buildVersion;
+          };
           # call next build directly (npm run build chains stylelint, a CI gate that shouldn't fail the image).
           buildPhase = ''
             runHook preBuild
