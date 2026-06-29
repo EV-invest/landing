@@ -12,8 +12,20 @@
     ev_assets = { url = "github:EV-invest/assets"; flake = false; };
     real_estate_allocation.url = "git+ssh://git@github.com/ev-invest/real_estate_allocation";
     real_estate_allocation.inputs.nixpkgs.follows = "nixpkgs";
+    real_estate_allocation.inputs.rust-overlay.follows = "rust-overlay";
+    real_estate_allocation.inputs.pre-commit-hooks.follows = "pre-commit-hooks";
   };
   outputs = { self, nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v_flakes, ev_assets, real_estate_allocation }:
+    let
+      # real_estate_allocation keeps its own v_flakes (forcing `follows` swaps its API and drops `embeds`).
+      # But if its pin drifts from ours, nixpkgs+rust-overlay duplicate silently — so fail loudly instead.
+      lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+      vfRevOf = node: lock.nodes.${lock.nodes.${node}.inputs.v_flakes}.locked.rev;
+      rootVf = vfRevOf lock.root;
+      reaVf = vfRevOf lock.nodes.${lock.root}.inputs.real_estate_allocation;
+    in
+    assert nixpkgs.lib.assertMsg (rootVf == reaVf)
+      "v_flakes pin mismatch: root=${rootVf} real_estate_allocation=${reaVf}. Bump both to the same ref so nixpkgs/rust-overlay stay deduped.";
     flake-utils.lib.eachDefaultSystem (
       system:
       let
