@@ -2,9 +2,13 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/git-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
+    v_flakes.inputs.nixpkgs.follows = "nixpkgs";
+    v_flakes.inputs.rust-overlay.follows = "rust-overlay";
     # Brand assets. Not a flake — a pinned source tree we copy the logo out of.
     # "Latest logo" = `nix flake update ev_assets` (bumps flake.lock). Public repo, so this stays token-free.
     ev_assets = { url = "github:EV-invest/assets"; flake = false; };
@@ -218,7 +222,8 @@
               echo "warn: ../real_estate_allocation not checked out — portfolio MFE will degrade" >&2
             fi
             if [ -n "$mfe" ]; then
-              rm -rf "$pub/mfe"; mkdir -p "$pub/mfe"
+              # a prior run's cp -rL inherited the store's read-only dirs, so rm -rf can't unlink without restoring write first
+              chmod -R u+w "$pub/mfe" 2>/dev/null || true; rm -rf "$pub/mfe"; mkdir -p "$pub/mfe"
               cp -rL "$mfe"/. "$pub/mfe/"
               chmod -R u+w "$pub/mfe"
             fi
