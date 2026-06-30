@@ -1,8 +1,4 @@
 {
-  # Declares the setting, not the binary: Determinate honours it, vanilla CppNix
-  # ignores it ("unknown setting"). Keeps lock hashes consistent only when every
-  # evaluator is Determinate — see release-container.yml.
-  nixConfig.lazy-trees = true;
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
@@ -35,8 +31,17 @@
       rootVf = vfRevOf lock.root;
       reaVf = vfRevOf lock.nodes.${lock.root}.inputs.real_estate_allocation;
     in
-    assert nixpkgs.lib.assertMsg (rootVf == reaVf)
-      "v_flakes pin mismatch: root=${rootVf} real_estate_allocation=${reaVf}. Bump both to the same ref so nixpkgs/rust-overlay stay deduped.";
+    assert nixpkgs.lib.assertMsg (rootVf == reaVf) ''
+      v_flakes pin mismatch — nixpkgs/rust-overlay would silently duplicate:
+        root (this repo, flake.nix `v_flakes.url` ref)   = ${rootVf}
+        real_estate_allocation (its own flake.lock)      = ${reaVf}
+      REA keeps its own v_flakes on purpose (see flake.nix:27), so the two locks
+      must be bumped to the SAME rev by hand. To fix, whichever is stale:
+        • bump REA forward: in the real_estate_allocation repo set the same
+          `v_flakes` ref, `nix flake update v_flakes`, push; then here run
+          `nix flake update real_estate_allocation`.
+        • or pin THIS repo back: edit flake.nix `v_flakes.url` ref to match REA,
+          then `nix flake update v_flakes`.'';
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -50,13 +55,31 @@
           extensions = [ "rust-src" "rust-analyzer" "rust-docs" "rustc-codegen-cranelift-preview" ];
           targets = [ "wasm32-unknown-unknown" ];
         });
-        pre-commit-check = pre-commit-hooks.lib.${system}.run (v_flakes.files.preCommit { inherit pkgs; });
+        # v_flakes ships the treefmt hook; we extend it with the same `.#test`
+        # derivation (typecheck + Playwright visual regression). Kept on pre-push,
+        # not pre-commit — a full visual run per commit is too slow; flip `stages`
+        # to ["pre-commit"] if you want it on every commit.
+        preCommitBase = v_flakes.files.preCommit { inherit pkgs; };
+        pre-commit-check = pre-commit-hooks.lib.${system}.run (preCommitBase // {
+          hooks = preCommitBase.hooks // {
+            test = {
+              enable = true;
+              name = "nix run .#test (typecheck + visual regression)";
+              entry = "${runTest}/bin/run-test";
+              pass_filenames = false;
+              stages = [ "pre-push" ];
+            };
+          };
+        });
         pname = "landing";
         backendCargo = (builtins.fromTOML (builtins.readFile ./backend/Cargo.toml)).package;
         # Deployed version, shown in the footer. CI passes the release tag via
         # BUILD_VERSION (needs --impure); pure builds fall back to the commit rev.
         buildVersion = let tag = builtins.getEnv "BUILD_VERSION"; in
           if tag != "" then tag else self.shortRev or self.dirtyShortRev or "dev";
+        # Full commit the footer link points at — kept separate so the display
+        # version can be a human tag without the link losing the exact rev.
+        buildCommit = self.rev or self.dirtyRev or "";
 
         logoSrc = "${ev_assets}/logo/logo.svg";
 
@@ -140,6 +163,7 @@
           env = {
             NEXT_TELEMETRY_DISABLED = "1";
             NEXT_PUBLIC_BUILD_VERSION = buildVersion;
+            NEXT_PUBLIC_BUILD_COMMIT = buildCommit;
             NEXT_PUBLIC_SITE_URL = "https://evinvest.ltd";
             NEXT_PUBLIC_REA_URL = "https://rea.evinvest.ltd";
             NEXT_PUBLIC_API_URL = "https://api.evinvest.ltd";
@@ -364,6 +388,29 @@
             wait
           '';
         };
+
+        # ── test suite: frontend typecheck + Playwright visual regression ───
+        # No Rust tests exist yet; add `cargo test --workspace` here when they do.
+        runTest = pkgs.writeShellApplication {
+          name = "run-test";
+          runtimeInputs = with pkgs; [ nodejs git ];
+          text = ''
+            repo="$(git rev-parse --show-toplevel)"
+            ${populateDocs}/bin/populate-docs || true
+            cd "$repo/frontend"
+            [ -d node_modules/.bin ] || npm install
+
+            echo "▶ typecheck (tsc --noEmit)"
+            npm run check
+
+            echo "▶ visual regression (playwright)"
+            # The nixpkgs browsers — npm-downloaded ones link libs absent on NixOS.
+            export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
+            export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD="1"
+            export PLAYWRIGHT_HOST_PLATFORM_OVERRIDE="nixos"
+            exec npm run test:visual
+          '';
+        };
       in
       {
         # `nix run .#dev`      → Postgres + backend + frontend
@@ -371,12 +418,14 @@
         # `nix run .#backend`  → Axum API only (:58844, needs a DB: `.#db` or `.#dev`)
         # `nix run .#db`       → local Postgres only (:5432)
         # `nix run .#gen-api`  → regenerate openapi.json + the TS client
+        # `nix run .#test`     → frontend typecheck + Playwright visual regression
         apps = {
           dev = { type = "app"; program = "${runDev}/bin/run-dev"; };
           frontend = { type = "app"; program = "${runFrontend}/bin/run-frontend"; };
           backend = { type = "app"; program = "${runBackend}/bin/run-backend"; };
           db = { type = "app"; program = "${runPostgres}/bin/run-postgres"; };
           gen-api = { type = "app"; program = "${runGenApi}/bin/run-gen-api"; };
+          test = { type = "app"; program = "${runTest}/bin/run-test"; };
         };
 
         packages = {
@@ -390,7 +439,16 @@
           with pkgs;
           mkShell {
             shellHook =
-              pre-commit-check.shellHook
+              ''
+                if [ "$(nix config show lazy-trees 2>/dev/null)" != true ]; then
+                  printf '%s\n' \
+                    "✘ This repo requires Determinate Nix with lazy-trees=true." \
+                    "  Stock nix produces flake.lock NAR hashes that diverge from CI (private inputs fail to verify)." \
+                    "  Install: https://determinate.systems/nix   NixOS: nix.settings.lazy-trees = true" >&2
+                  exit 1
+                fi
+              ''
+              + pre-commit-check.shellHook
               + combined.shellHook
               + ''
                 cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
