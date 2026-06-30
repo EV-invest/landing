@@ -17,11 +17,11 @@
     real_estate_allocation.inputs.nixpkgs.follows = "nixpkgs";
     real_estate_allocation.inputs.rust-overlay.follows = "rust-overlay";
     real_estate_allocation.inputs.pre-commit-hooks.follows = "pre-commit-hooks";
-    blog.url = "git+ssh://git@github.com/ev-invest/blog";
+    blog.url = "git+ssh://git@github.com/ev-invest/blog?lfs=1";
     blog.inputs.nixpkgs.follows = "nixpkgs";
     blog.inputs.v-utils.inputs.nixpkgs.follows = "nixpkgs";
     blog.inputs.v-utils.inputs.rust-overlay.follows = "rust-overlay";
-    whitepaper.url = "git+ssh://git@github.com/ev-invest/whitepaper";
+    whitepaper.url = "git+ssh://git@github.com/ev-invest/whitepaper?lfs=1";
     whitepaper.inputs.nixpkgs.follows = "nixpkgs";
     whitepaper.inputs.v_flakes.follows = "v_flakes";
   };
@@ -59,7 +59,7 @@
             test = {
               enable = true;
               name = "nix run .#test (typecheck + visual regression)";
-              entry = "${runTest}/bin/run-test";
+              entry = "${runTestHook}/bin/run-test-hook";
               pass_filenames = false;
               stages = [ "pre-push" ];
             };
@@ -153,7 +153,9 @@
           pname = "landing-frontend";
           version = "1.0.0";
           src = ./frontend;
-          npmDepsHash = "sha256-VeEqSU8km3V5JVfkN5k42/A9LtlFxYmIev04z13z9tU=";
+          # build node_modules straight from package-lock.json — no FOD hash to drift on release builds.
+          npmDeps = pkgs.importNpmLock { npmRoot = ./frontend; };
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
           env = {
             NEXT_TELEMETRY_DISABLED = "1";
             NEXT_PUBLIC_BUILD_VERSION = buildVersion;
@@ -392,7 +394,7 @@
             repo="$(git rev-parse --show-toplevel)"
             ${populateDocs}/bin/populate-docs || true
             cd "$repo/frontend"
-            [ -d node_modules/.bin ] || npm install
+            [ -d node_modules/.bin ] || npm ci
 
             echo "▶ typecheck (tsc --noEmit)"
             npm run check
@@ -406,6 +408,33 @@
           '';
         };
 
+        # pre-push wrapper: run the (slow) visual suite only when pushing a protected
+        # ref / tag, and skip even then if the pushed tip's tree matches the remote's
+        # (a squash/reword that leaves content identical can't change a screenshot).
+        # pre-commit sets REMOTE_BRANCH/FROM_REF/TO_REF on pre-push.
+        runTestHook = pkgs.writeShellApplication {
+          name = "run-test-hook";
+          runtimeInputs = with pkgs; [ git ];
+          text = ''
+            # Only gate the protected refs / releases; feature-branch pushes run nothing.
+            case "''${PRE_COMMIT_REMOTE_BRANCH:-}" in
+              refs/heads/main|refs/heads/dev|refs/heads/release|refs/tags/*) ;;
+              *) echo "not a protected ref / tag — skipping visual regression"; exit 0 ;;
+            esac
+
+            from="''${PRE_COMMIT_FROM_REF:-}"
+            to="''${PRE_COMMIT_TO_REF:-}"
+            # Missing refs (new branch / refs unavailable) → don't skip; run the suite.
+            if [ -n "$from" ] && [ -n "$to" ] && git rev-parse -q --verify "$from^{tree}" >/dev/null 2>&1; then
+              if [ "$(git rev-parse "$from^{tree}")" = "$(git rev-parse "$to^{tree}")" ]; then
+                echo "tip tree unchanged since remote — skipping visual regression"
+                exit 0
+              fi
+            fi
+            exec ${runTest}/bin/run-test
+          '';
+        };
+
         # ── accept new screenshots: `.#accept-test` (all) or with -- <names> ──
         runAcceptTest = pkgs.writeShellApplication {
           name = "accept-test";
@@ -413,7 +442,7 @@
           text = ''
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo/frontend"
-            [ -d node_modules/.bin ] || npm install
+            [ -d node_modules/.bin ] || npm ci
             export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
             export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD="1"
             export PLAYWRIGHT_HOST_PLATFORM_OVERRIDE="nixos"
@@ -422,6 +451,33 @@
             fi
             # playwright -g takes one regex; alternate the names so multiple match.
             exec npm run test:visual:update -- -g "$(IFS='|'; echo "$*")"
+          '';
+        };
+
+        # ── bump latest remote vX.Y.Z tag and push: `.#publish major|minor|patch` ──
+        runPublish = pkgs.writeShellApplication {
+          name = "publish";
+          runtimeInputs = with pkgs; [ git ];
+          text = ''
+                        part="''${1:-}"
+                        case "$part" in major|minor|patch) ;; *) echo "usage: nix run .#publish -- major|minor|patch" >&2; exit 1 ;; esac
+                        [ -z "$(git status --porcelain)" ] || { echo "uncommitted changes — commit or stash first" >&2; exit 1; }
+
+                        git fetch --tags --force origin >/dev/null 2>&1
+                        last="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+                        ver="''${last#v}"; [ -n "$ver" ] || ver="0.0.0"
+                        IFS=. read -r ma mi pa <<EOF
+            $ver
+            EOF
+                        case "$part" in
+                          major) ma=$((ma+1)); mi=0; pa=0 ;;
+                          minor) mi=$((mi+1)); pa=0 ;;
+                          patch) pa=$((pa+1)) ;;
+                        esac
+                        next="v$ma.$mi.$pa"
+                        echo "$last → $next"
+                        git tag "$next"
+                        git push origin "$next"
           '';
         };
       in
@@ -433,6 +489,7 @@
         # `nix run .#gen-api`  → regenerate openapi.json + the TS client
         # `nix run .#test`     → frontend typecheck + Playwright visual regression
         # `nix run .#accept-test` → accept new screenshots (all, or `-- <names>`)
+        # `nix run .#publish`  → bump latest remote vX.Y.Z tag (major|minor|patch) + push
         apps = {
           dev = { type = "app"; program = "${runDev}/bin/run-dev"; };
           frontend = { type = "app"; program = "${runFrontend}/bin/run-frontend"; };
@@ -441,6 +498,7 @@
           gen-api = { type = "app"; program = "${runGenApi}/bin/run-gen-api"; };
           test = { type = "app"; program = "${runTest}/bin/run-test"; };
           accept-test = { type = "app"; program = "${runAcceptTest}/bin/accept-test"; };
+          publish = { type = "app"; program = "${runPublish}/bin/publish"; };
         };
 
         packages = {
