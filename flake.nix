@@ -402,6 +402,25 @@
             exec npm run test:visual
           '';
         };
+
+        # ── accept new screenshots: `.#accept-test` (all) or with -- <names> ──
+        runAcceptTest = pkgs.writeShellApplication {
+          name = "accept-test";
+          runtimeInputs = with pkgs; [ nodejs git ];
+          text = ''
+            repo="$(git rev-parse --show-toplevel)"
+            cd "$repo/frontend"
+            [ -d node_modules/.bin ] || npm install
+            export PLAYWRIGHT_BROWSERS_PATH="${pkgs.playwright-driver.browsers}"
+            export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD="1"
+            export PLAYWRIGHT_HOST_PLATFORM_OVERRIDE="nixos"
+            if [ "$#" -eq 0 ]; then
+              exec npm run test:visual:update
+            fi
+            # playwright -g takes one regex; alternate the names so multiple match.
+            exec npm run test:visual:update -- -g "$(IFS='|'; echo "$*")"
+          '';
+        };
       in
       {
         # `nix run .#dev`      → Postgres + backend + frontend
@@ -410,6 +429,7 @@
         # `nix run .#db`       → local Postgres only (:5432)
         # `nix run .#gen-api`  → regenerate openapi.json + the TS client
         # `nix run .#test`     → frontend typecheck + Playwright visual regression
+        # `nix run .#accept-test` → accept new screenshots (all, or `-- <names>`)
         apps = {
           dev = { type = "app"; program = "${runDev}/bin/run-dev"; };
           frontend = { type = "app"; program = "${runFrontend}/bin/run-frontend"; };
@@ -417,6 +437,7 @@
           db = { type = "app"; program = "${runPostgres}/bin/run-postgres"; };
           gen-api = { type = "app"; program = "${runGenApi}/bin/run-gen-api"; };
           test = { type = "app"; program = "${runTest}/bin/run-test"; };
+          accept-test = { type = "app"; program = "${runAcceptTest}/bin/accept-test"; };
         };
 
         packages = {
