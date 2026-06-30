@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@evinvest/uikit";
+import { cn } from "@/shared/lib/utils";
 
 /**
  * Mobile swipe pattern — one card in view, inset prev/next arrows, and a dot
@@ -50,9 +51,10 @@ export function MobileCarousel({
             onClick={() => setIndex(i)}
             aria-label={`Go to slide ${i + 1}`}
             aria-current={i === index}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
+            className={cn(
+              "h-1.5 rounded-full transition-all duration-300",
               i === index ? "w-6 bg-main-accent-t1" : "w-1.5 bg-main-mist/25"
-            }`}
+            )}
           />
         ))}
       </div>
