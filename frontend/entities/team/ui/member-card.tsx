@@ -27,8 +27,8 @@ export function MemberCard({ member }: { member: TeamMember }) {
         sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-main-black/85 via-transparent to-transparent p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <Tier tier="alt">
+      <div className="absolute inset-0 z-10 flex transform-gpu items-end p-6 opacity-0 transition-opacity duration-300 [text-shadow:0_0_12px_#000,0_0_12px_#000,0_0_24px_#000,0_0_24px_#000,0_0_24px_#000,0_0_48px_#000,0_0_48px_#000,0_0_84px_rgb(0_0_0/0.8)] group-hover:opacity-100">
+        <Tier tier="main">
           <Text>{member.bio}</Text>
         </Tier>
       </div>

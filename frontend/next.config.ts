@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { join } from "node:path";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
@@ -22,6 +23,12 @@ const nextConfig: NextConfig = {
   // Self-contained production server (.next/standalone) so the weak VPS runs
   // `node server.js` without an `npm install` — we can't build there.
   output: "standalone",
+  // @evinvest/uikit is a `file:` symlink to ../../lib/ts/uikit (outside this
+  // root, until the coworker publishes 0.3.1). transpilePackages compiles its
+  // ESM through our pipeline; outputFileTracingRoot widens the standalone trace
+  // to the monorepo so the out-of-root files get bundled.
+  transpilePackages: ["@evinvest/uikit"],
+  outputFileTracingRoot: join(import.meta.dirname, "../.."),
   // Enables the `forbidden()` / `unauthorized()` interrupts and their
   // `forbidden.tsx` / `unauthorized.tsx` file conventions (still experimental).
   experimental: {
