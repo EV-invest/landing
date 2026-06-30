@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Container } from "@evinvest/uikit";
-import { Text } from "@/shared/ui/text";
+import { Text, Tier } from "@/shared/ui/text";
 import { Logo } from "@/shared/ui/logo";
 import { notifyPlaceholder } from "@/shared/lib/utils";
 
@@ -53,9 +53,8 @@ export function Footer() {
             <h4 className="font-mono-tech text-xs text-white uppercase tracking-widest mb-6">
               Offices
             </h4>
-            {/* Not <Text>: variant="info" injects the scale's body size (text-sm),
-                whose line-height fights leading-relaxed and tightens these address
-                lines. Footer copy is fixed at text-xs, so keep the sizing local. */}
+            {/* Plain <p>, not <Text>: these address lines want a fixed text-xs and
+                sit under no <Tier>, so an info <Text> would panic. Sizing stays local. */}
             <ul className="space-y-4 text-xs text-main-mist/70 font-light leading-relaxed">
               <li>
                 <strong className="text-white block font-mono-tech text-[10px] uppercase tracking-wider mb-1">
@@ -78,9 +77,11 @@ export function Footer() {
             <h4 className="font-mono-tech text-xs text-white uppercase tracking-widest mb-6">
               Newsletter
             </h4>
-            <Text className="mb-4">
-              Subscribe, to receive our macro reports
-            </Text>
+            <Tier tier="alt">
+              <Text className="mb-4">
+                Subscribe, to receive our macro reports
+              </Text>
+            </Tier>
             <div className="flex border border-main-mist/20">
               <input
                 type="email"

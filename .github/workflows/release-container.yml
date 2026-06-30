@@ -14,13 +14,10 @@ jobs:
     - uses: DeterminateSystems/nix-installer-action@main
       with:
         extra-conf: lazy-trees = true
-    # Public repo → public Cachix: pulls deps and pushes built paths. Only this
-    # repo's closure is published (it builds REA's `embeds` MFE — already served
-    # publicly on the site — not REA's private server crates).
-    - uses: cachix/cachix-action@v15
+    - uses: nix-community/cache-nix-action@v7
       with:
-        name: ev-invest
-        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-
     - name: Log in to GHCR
       uses: docker/login-action@v3
       with:

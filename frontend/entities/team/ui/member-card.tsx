@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Text } from "@/shared/ui/text";
+import { Text, Tier } from "@/shared/ui/text";
 import { FrameCard } from "@/shared/ui/frame-card";
 import type { TeamMember } from "../model";
 
@@ -28,7 +28,9 @@ export function MemberCard({ member }: { member: TeamMember }) {
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div className="absolute inset-0 flex items-end bg-gradient-to-t from-main-black/85 via-transparent to-transparent p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <Text>{member.bio}</Text>
+        <Tier tier="alt">
+          <Text>{member.bio}</Text>
+        </Tier>
       </div>
     </FrameCard>
   );
