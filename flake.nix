@@ -31,8 +31,17 @@
       rootVf = vfRevOf lock.root;
       reaVf = vfRevOf lock.nodes.${lock.root}.inputs.real_estate_allocation;
     in
-    assert nixpkgs.lib.assertMsg (rootVf == reaVf)
-      "v_flakes pin mismatch: root=${rootVf} real_estate_allocation=${reaVf}. Bump both to the same ref so nixpkgs/rust-overlay stay deduped.";
+    assert nixpkgs.lib.assertMsg (rootVf == reaVf) ''
+      v_flakes pin mismatch — nixpkgs/rust-overlay would silently duplicate:
+        root (this repo, flake.nix `v_flakes.url` ref)   = ${rootVf}
+        real_estate_allocation (its own flake.lock)      = ${reaVf}
+      REA keeps its own v_flakes on purpose (see flake.nix:27), so the two locks
+      must be bumped to the SAME rev by hand. To fix, whichever is stale:
+        • bump REA forward: in the real_estate_allocation repo set the same
+          `v_flakes` ref, `nix flake update v_flakes`, push; then here run
+          `nix flake update real_estate_allocation`.
+        • or pin THIS repo back: edit flake.nix `v_flakes.url` ref to match REA,
+          then `nix flake update v_flakes`.'';
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -68,6 +77,9 @@
         # BUILD_VERSION (needs --impure); pure builds fall back to the commit rev.
         buildVersion = let tag = builtins.getEnv "BUILD_VERSION"; in
           if tag != "" then tag else self.shortRev or self.dirtyShortRev or "dev";
+        # Full commit the footer link points at — kept separate so the display
+        # version can be a human tag without the link losing the exact rev.
+        buildCommit = self.rev or self.dirtyRev or "";
 
         logoSrc = "${ev_assets}/logo/logo.svg";
 
@@ -151,6 +163,7 @@
           env = {
             NEXT_TELEMETRY_DISABLED = "1";
             NEXT_PUBLIC_BUILD_VERSION = buildVersion;
+            NEXT_PUBLIC_BUILD_COMMIT = buildCommit;
             NEXT_PUBLIC_SITE_URL = "https://evinvest.ltd";
             NEXT_PUBLIC_REA_URL = "https://rea.evinvest.ltd";
             NEXT_PUBLIC_API_URL = "https://api.evinvest.ltd";

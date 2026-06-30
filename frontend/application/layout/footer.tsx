@@ -7,8 +7,7 @@ import { Logo } from "@/shared/ui/logo";
 import { notifyPlaceholder } from "@/shared/lib/utils";
 
 const version = process.env.NEXT_PUBLIC_BUILD_VERSION ?? "unknown";
-// `git describe` yields `<tag>-<n>-g<sha>` in dev; the link needs just the sha.
-const commit = version.match(/-g([0-9a-f]+)$/)?.[1] ?? version;
+const commit = process.env.NEXT_PUBLIC_BUILD_COMMIT || version;
 
 export function Footer() {
   useEffect(() => {
