@@ -1,8 +1,4 @@
 {
-  # Declares the setting, not the binary: Determinate honours it, vanilla CppNix
-  # ignores it ("unknown setting"). Keeps lock hashes consistent only when every
-  # evaluator is Determinate — see release-container.yml.
-  nixConfig.lazy-trees = true;
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
@@ -390,7 +386,16 @@
           with pkgs;
           mkShell {
             shellHook =
-              pre-commit-check.shellHook
+              ''
+                if [ "$(nix config show lazy-trees 2>/dev/null)" != true ]; then
+                  printf '%s\n' \
+                    "✘ This repo requires Determinate Nix with lazy-trees=true." \
+                    "  Stock nix produces flake.lock NAR hashes that diverge from CI (private inputs fail to verify)." \
+                    "  Install: https://determinate.systems/nix   NixOS: nix.settings.lazy-trees = true" >&2
+                  exit 1
+                fi
+              ''
+              + pre-commit-check.shellHook
               + combined.shellHook
               + ''
                 cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml

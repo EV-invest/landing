@@ -32,7 +32,7 @@ export function HeroB() {
             Through Institutional Vision.
           </h1>
 
-          <Text className="max-w-xl sm:text-base md:text-lg">
+          <Text className="max-w-xl">
             EV Investment bridges the gap between premium coastal real estate
             development and sophisticated investors. Experience high-yield real
             estate assets in Vietnam&apos;s fastest-growing coastal hub.

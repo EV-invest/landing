@@ -28,7 +28,7 @@ export function MemberCard({ member }: { member: TeamMember }) {
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div className="absolute inset-0 flex items-end bg-gradient-to-t from-main-black/85 via-transparent to-transparent p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <Text className="text-xs">{member.bio}</Text>
+        <Text>{member.bio}</Text>
       </div>
     </FrameCard>
   );

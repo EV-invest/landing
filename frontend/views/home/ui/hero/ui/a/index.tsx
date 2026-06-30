@@ -40,7 +40,7 @@ function HeroCopy() {
         <br />
         Through Institutional Vision.
       </h1>
-      <Text className="sm:text-base md:text-lg max-w-2xl mx-auto mb-12">
+      <Text className="max-w-2xl mx-auto mb-12">
         Invest in Emergent Markets through Vietnam.<br />
         See why and how to invest directly.
         China+1 narrative ensures consistently increasing FDI inflows.<br />

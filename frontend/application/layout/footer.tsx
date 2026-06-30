@@ -78,7 +78,7 @@ export function Footer() {
             <h4 className="font-mono-tech text-xs text-white uppercase tracking-widest mb-6">
               Newsletter
             </h4>
-            <Text className="text-xs mb-4">
+            <Text className="mb-4">
               Subscribe, to receive our macro reports
             </Text>
             <div className="flex border border-main-mist/20">

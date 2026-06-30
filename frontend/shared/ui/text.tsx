@@ -21,9 +21,11 @@ const HEADING_SIZE: Record<Scale, string> = {
   alt: "text-xl sm:text-2xl",
 };
 
+// One notch larger on phones, where the dense card text was hard to read, then
+// back to the compact desktop size at sm+.
 const BODY_SIZE: Record<Scale, string> = {
-  main: "text-sm",
-  alt: "text-xs",
+  main: "text-base sm:text-sm",
+  alt: "text-sm sm:text-xs",
 };
 
 const ScaleContext = React.createContext<Scale>("main");
@@ -81,12 +83,16 @@ function Text({
   const Comp = asChild ? Slot : "p";
   const scale = React.useContext(ScaleContext);
   // Only info inherits the scale's body size; secondary owns its own sizing.
+  // The size is the scale's to set — callers never override it (a conflicting
+  // text-* in className panics in dev, by design).
   const size = variant === "secondary" ? undefined : BODY_SIZE[scale];
 
   return (
     <Comp
       data-slot="text"
-      className={cn(textVariants({ variant }), size, className)}
+      // size first: a text-size utility carries a line-height, so it must
+      // precede `leading-relaxed` in the variant or it would silently clobber it.
+      className={cn(size, textVariants({ variant }), className)}
       {...props}
     />
   );
