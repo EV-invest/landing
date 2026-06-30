@@ -4,6 +4,7 @@ import { Children, useState, type ReactNode } from "react";
 import {
   Carousel,
   CarouselContent,
+  CarouselEdgeFade,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
@@ -28,14 +29,18 @@ export function MobileCarousel({
 
   return (
     <Carousel index={index} onIndexChange={setIndex} className={className}>
-      <CarouselContent>
-        {slides.map((slide, i) => (
-          <CarouselItem key={i}>{slide}</CarouselItem>
-        ))}
-      </CarouselContent>
+      <div className="relative">
+        <CarouselContent>
+          {slides.map((slide, i) => (
+            <CarouselItem key={i}>{slide}</CarouselItem>
+          ))}
+        </CarouselContent>
 
-      <CarouselPrevious className="left-3 size-9 border-main-mist/20 bg-main-black/40 text-white hover:bg-main-black/60 hover:text-white" />
-      <CarouselNext className="right-3 size-9 border-main-mist/20 bg-main-black/40 text-white hover:bg-main-black/60 hover:text-white" />
+        <CarouselEdgeFade />
+
+        <CarouselPrevious className="left-3 size-9 border-main-mist/20 bg-main-black/40 text-white hover:bg-main-black/60 hover:text-white" />
+        <CarouselNext className="right-3 size-9 border-main-mist/20 bg-main-black/40 text-white hover:bg-main-black/60 hover:text-white" />
+      </div>
 
       <div className="mt-6 flex justify-center gap-2">
         {slides.map((_, i) => (

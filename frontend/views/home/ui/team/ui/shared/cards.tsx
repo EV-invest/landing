@@ -33,7 +33,7 @@ export function PlaceholderCard({
       heading={heading}
       headingClassName="text-main-mist/40"
       sub={
-        <Text variant="secondary" className="text-xs font-mono-tech mt-1">
+        <Text variant="secondary" className="text-base sm:text-xs font-mono-tech mt-1">
           {sub}
         </Text>
       }
@@ -46,8 +46,8 @@ export function PlaceholderCard({
             <Icon className="w-6 h-6" />
           </div>
           <div>
-            <h5 className="font-serif-display font-bold text-white text-sm">{title}</h5>
-            <Text variant="secondary" className="text-xs mt-2 font-light">
+            <h5 className="font-serif-display font-bold text-white text-lg sm:text-sm">{title}</h5>
+            <Text variant="secondary" className="text-sm sm:text-xs mt-2 font-light">
               {body}
             </Text>
           </div>
