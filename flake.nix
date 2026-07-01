@@ -72,6 +72,9 @@
         github = v_flakes.github {
           inherit pkgs pname rs;
           enable = true;
+          # Cache only locally-built paths (toolchain + our outputs), not the
+          # ~4 GB of cache.nixos.org-substitutable deps — see v_flakes cache.nix.
+          cache = { lean = true; };
           lastSupportedVersion = "nightly-2026-05-12";
           # The frontend image bakes private inputs (REA `embeds`, blog, whitepaper),
           # so the release runner needs read access to each — one read-only deploy key

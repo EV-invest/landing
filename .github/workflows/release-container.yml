@@ -11,15 +11,39 @@ jobs:
         \ strict semver vX.Y.Z[-prerelease] — refusing to release\" >&2\n  exit 1\n\
         fi\n"
       shell: bash
+    - name: Lean cache setup
+      run: 'mkdir -p /tmp/nix-lean-cache
+
+        chmod 0777 /tmp/nix-lean-cache
+
+        printf ''#!/bin/sh\nexport PATH=/nix/var/nix/profiles/default/bin:$PATH\nnix
+        copy --to "file:///tmp/nix-lean-cache?compression=zstd&parallel-compression=true"
+        $OUT_PATHS || true\n'' > /tmp/nix-lean-pbh.sh
+
+        chmod 0755 /tmp/nix-lean-pbh.sh
+
+        '
+      shell: bash
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@main
       with:
-        extra-conf: lazy-trees = true
-    - name: Setup Nix cache
-      uses: nix-community/cache-nix-action@v7
+        extra-conf: 'lazy-trees = true
+
+          post-build-hook = /tmp/nix-lean-pbh.sh
+
+          extra-substituters = file:///tmp/nix-lean-cache
+
+          extra-trusted-substituters = file:///tmp/nix-lean-cache
+
+          require-sigs = false
+
+          '
+    - name: Lean nix cache (built-only paths)
+      uses: actions/cache@v4
       with:
-        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-
+        key: nix-lean-${{ runner.os }}-${{ github.run_id }}
+        path: /tmp/nix-lean-cache
+        restore-keys: nix-lean-${{ runner.os }}-
     - name: Log in to GHCR
       uses: docker/login-action@v3
       with:

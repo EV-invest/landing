@@ -198,11 +198,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782916958,
-        "narHash": "sha256-ic7z5r1AfvevFgBSmm3DTgFXiH2+N4lHfBOwX2YlGk8=",
+        "lastModified": 1782918589,
+        "narHash": "sha256-0LSHx1it4yw5UAKTxTyUwP/EjSt/FcVcHeVShPB2UL4=",
         "owner": "valeratrades",
         "repo": "v_flakes",
-        "rev": "f5e7e2410d6e2a425343c0f84bb53544cda69de9",
+        "rev": "11a4efac3d7dd8451a00705f84c312ee01aaf1b3",
         "type": "github"
       },
       "original": {
