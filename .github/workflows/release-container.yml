@@ -70,8 +70,31 @@ jobs:
         \ the host's.\nexport CONTAINERS_REGISTRIES_CONF=\"$(mktemp)\"\nprintf 'unqualified-search-registries\
         \ = []\\n' > \"$CONTAINERS_REGISTRIES_CONF\"\nfor name in $names; do\n  echo\
         \ \"::group::$name\"\n  RESULT=\"$(nix build --impure \".#$name-container\"\
-        \ --no-link --print-out-paths --quiet)\"\n  nix run nixpkgs#skopeo -- copy\
-        \ \\\n    \"docker-archive:$RESULT\" \\\n    \"docker://ghcr.io/ev-invest/$name:${{\
+        \ --no-link --print-out-paths -L 2> >(gawk 'function cat(n) {\n  if      (n\
+        \ ~ /\\.tar\\.gz|layers\\.json|stream-|customisation-layer|-conf\\.json|-base\\\
+        .json|excludePaths/) return \"packaging\"\n  else if (n ~ /landing-frontend|next/)\
+        \      return \"frontend/next\"\n  else if (n ~ /-mfe|wasm/)             \
+        \     return \"wasm-mfe\"\n  else if (n ~ /(^|-)backend/)               return\
+        \ \"backend\"\n  else if (n ~ /blog/)                       return \"blog\"\
+        \n  else if (n ~ /whitepaper/)                 return \"whitepaper\"\n  else\
+        \ if (n ~ /rust-std|cargo-nightly|rust-analyzer|cranelift|rust-docs/) return\
+        \ \"rust-toolchain\"\n  else if (n ~ /\\.tgz/)                       return\
+        \ \"npm-deps\"\n  return \"other-crates\"\n}\n{\n  print $0 > \"/dev/stderr\"\
+        \n  n = \"\"\n  if (match($0, /\\/nix\\/store\\/[a-z0-9]+-[^ ]*\\.drv/)) {\
+        \ n = substr($0, RSTART, RLENGTH) }\n  else if (match($0, /^[A-Za-z0-9._-]+>\
+        \ /))            { n = substr($0, 1, RLENGTH-2) }\n  else next\n  c = cat(n);\
+        \ now = systime()\n  if (!(c in st)) st[c] = now\n  en[c] = now\n  if (t0\
+        \ == 0) t0 = now\n}\nEND {\n  if (t0 == 0) exit\n  tmax = 0; for (c in en)\
+        \ if (en[c] > tmax) tmax = en[c]\n  span = tmax - t0; if (span < 1) span =\
+        \ 1\n  W = 50; unit = (span/W >= 1 ? int(span/W) : 1)\n  printf \"\\n== build\
+        \ timeline (%dm%02ds total, each # ~ %ds) ==\\n\", span/60, span%60, unit\
+        \ > \"/dev/stderr\"\n  PROCINFO[\"sorted_in\"] = \"@val_num_asc\"\n  for (c\
+        \ in st) {\n    a = int((st[c]-t0)/span*W); b = int((en[c]-t0)/span*W); if\
+        \ (b <= a) b = a+1\n    pad = \"\"; for (i=0;i<a;i++) pad = pad \" \"\n  \
+        \  fill = \"\"; for (i=0;i<b-a;i++) fill = fill \"#\"\n    printf \"%-15s\
+        \ |%s%s  %dm%02ds\\n\", c, pad, fill, (en[c]-st[c])/60, (en[c]-st[c])%60 >\
+        \ \"/dev/stderr\"\n  }\n}\n' >&2))\"\n  nix run nixpkgs#skopeo -- copy \\\n\
+        \    \"docker-archive:$RESULT\" \\\n    \"docker://ghcr.io/ev-invest/$name:${{\
         \ github.ref_name }}\"\n  echo \"::endgroup::\"\ndone\n"
       shell: bash
     timeout-minutes: 40
